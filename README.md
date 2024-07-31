@@ -1,4 +1,4 @@
-# Learning Stable Imitation Policies
+# Learning Stable Imitation Policies with Waypoints
 
 ## Overview
 
