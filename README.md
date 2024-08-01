@@ -14,6 +14,10 @@ Conference on Robot Learning, 2023.
 <img src="fig/rebutt/plyds_7dem_sine.png" alt="" width="400" height="400">
 <img src="fig/rebutt/plyds_7dem_p.png" alt="" width="400" height="400">
 
+## Datasets 
+
+See [this](https://drive.google.com/drive/folders/1pUf4rRhM_E5hXXHynWmEhNyuBOxJXORY?usp=sharing) drive for the hdf5 datasets.
+
 ## Getting started
 
 This section provides instructions on reproducibility and basic functionalities of the repository.
