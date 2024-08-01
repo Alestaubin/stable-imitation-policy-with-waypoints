@@ -172,4 +172,4 @@ dependencies:
     - werkzeug==2.3.4
     - wrapt==1.15.0
     - zipp==3.15.0
-prefix: /home/amin/anaconda3/envs/learning-ds
+    - gdown==5.2.0
