@@ -317,7 +317,7 @@ def init_sdsef_model(input_dim: int = 2, coupling_network_type = 'rffn',
         torch.nn: the best trained model
     """
 
-    goal = torch.zeros(1, 2, device=device) # goal is fixed at zero assuming calibration
+    goal = torch.zeros(1, input_dim, device=device) # goal is fixed at zero assuming calibration
     n_dims = input_dim
 
     # bijection network

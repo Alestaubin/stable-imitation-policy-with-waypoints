@@ -14,7 +14,7 @@ from typing import List
 
 class NormalNN(nn.Module):
     def __init__(self, layer_sizes: List[int] = [2, 128, 128, 128, 2],
-                 activation=nn.LeakyReLU):
+                 activation=nn.LeakyReLU, goal = None):
         """ Initialize a normal feed-forward neural network.
 
         Args:
@@ -26,6 +26,7 @@ class NormalNN(nn.Module):
 
         super(NormalNN, self).__init__()
         self.__model = nn.Sequential()
+        self.goal = goal
 
         # Add input layer
         input_size = layer_sizes[0]
@@ -49,11 +50,11 @@ class NormalNN(nn.Module):
                 nn.init.constant_(module.bias, 0)
 
     def forward(self, x):
-        return self.__model(x)
+        return self.__model(x - self.goal)
 
 
 class PosDefICNN(nn.Module):
-    def __init__(self, layer_sizes, eps, negative_slope):
+    def __init__(self, layer_sizes, eps, negative_slope, goal):
         """ Positive definite ICNN module.
 
         Args:
@@ -64,13 +65,14 @@ class PosDefICNN(nn.Module):
         super().__init__()
         self.W = nn.ParameterList([nn.Parameter(torch.Tensor(l, layer_sizes[0]))
                                    for l in layer_sizes[1:]])
-        self.U = nn.ParameterList([nn.Parameter(torch.Tensor(layer_sizes[i+1], layer_sizes[i]))
+        self.U = nn.ParameterList([nn.Parameter(torch.Tensor(layer_sizes[i + 1], layer_sizes[i]))
                                    for i in range(1, len(layer_sizes) - 1)])
         self.bias = nn.ParameterList([nn.Parameter(torch.Tensor(l))
                                    for l in layer_sizes[1:]])
         self.eps = eps
         self.negative_slope = negative_slope
         self.reset_parameters()
+        self.goal = goal
         self.activation = F.leaky_relu
 
     def reset_parameters(self):
@@ -80,22 +82,22 @@ class PosDefICNN(nn.Module):
             nn.init.kaiming_uniform_(U, a=5**0.5)
 
     def forward(self, x):
-        z = F.linear(x, self.W[0], self.bias[0])
+        z = F.linear((x - self.goal), self.W[0], self.bias[0])
         z = self.activation(z)
 
         for W, bias, U in zip(self.W[1:-1], self.bias[1:-1], self.U[:-1]):
-            z = F.linear(x, W) + F.linear(z, F.softplus(U), bias) * self.negative_slope
+            z = F.linear((x - self.goal), W) + F.linear(z, F.softplus(U), bias) * self.negative_slope
             z = self.activation(z)
 
-        z = F.linear(x, self.W[-1]) + F.linear(z, F.softplus(self.U[-1]), self.bias[-1])
-        return z + self.eps * (x ** 2).sum(1)[:, None]
+        z = F.linear((x - self.goal), self.W[-1]) + F.linear(z, F.softplus(self.U[-1]), self.bias[-1])
+        return z + self.eps * ((x - self.goal) ** 2).sum(1)[:, None]
 
 
 class Calibrate(nn.Module):
-    def __init__(self, f, n=2, device=torch.device("cpu")):
+    def __init__(self, f, goal: torch.Tensor):
         super().__init__()
         self.f = f
-        self.zero = torch.zeros(1, n, device=device, requires_grad=True)
+        self.zero = goal
 
     def forward(self, x):
         output = self.f(x) - self.f(self.zero)
@@ -137,8 +139,8 @@ class Dynamics(nn.Module):
         return rv
 
 
-def joint_lpf_ds_model(device, lsd=2, fhat_layers=[2, 256, 256, 256, 2], lpf_layers=[2, 64, 64, 1], eps: float = 0.01,
-                       alpha: float = 0.01, relaxed: bool = False):
+def init_snds_model(device, lsd=2, fhat_layers=[256, 256, 256], lpf_layers=[64, 64], eps: float = 0.01,
+                       alpha: float = 0.01, relaxed: bool = False, goal: torch.Tensor = None):
     """ Unified model of stable dynamical system, ready to train.
 
     Args:
@@ -146,15 +148,19 @@ def joint_lpf_ds_model(device, lsd=2, fhat_layers=[2, 256, 256, 256, 2], lpf_lay
         lsd (int, optional): Input dimension for Lyapunov functions. Defaults to 2.
 
     Returns:
-        _type_: _description_
+        Callable: DS and safety certificate
     """
+
+    # add input and output dims
+    fhat_layers = [lsd]+ fhat_layers + [lsd]
+    lpf_layers = [lsd] + lpf_layers + [1]
+
     # dynamics function to learn
-    fhat = Calibrate(NormalNN(layer_sizes=fhat_layers), n=lsd, device=device)
+    fhat = Calibrate(NormalNN(layer_sizes=fhat_layers, goal=goal), goal=goal)
     fhat.to(device)
 
     # convex Lyapunov function
-    lpf = Calibrate(PosDefICNN(lpf_layers, eps=eps, negative_slope=0.01),
-                   device=device)
+    lpf = Calibrate(PosDefICNN(lpf_layers, eps=eps, negative_slope=0.01, goal=goal), goal=goal)
     lpf.to(device)
 
     # joint dynamics model

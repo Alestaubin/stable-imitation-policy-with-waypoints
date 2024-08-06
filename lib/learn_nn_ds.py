@@ -8,17 +8,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from policy_interface import PlanningPolicyInterface
+from lib.policy_interface import PlanningPolicyInterface
 from torch.utils.data import DataLoader, TensorDataset
 
 from tqdm.auto import tqdm
 
-from nns.networks import NN, LNET
-from nns.euclidean_flows import init_sdsef_model
-from nns.deep_dynamics import joint_lpf_ds_model
+from lib.nns.networks import NN, LNET
+from lib.nns.euclidean_flows import init_sdsef_model
+from lib.nns.deep_dynamics import init_snds_model
 
-from utils.utils import mse
-from utils.log_config import logger
+from lib.utils.utils import mse
+from lib.utils.log_config import logger
 
 
 class NL_DS(PlanningPolicyInterface):
@@ -29,7 +29,7 @@ class NL_DS(PlanningPolicyInterface):
     """
 
     def __init__(self, network: str = 'nn', data_dim: int = 2, gpu: bool = True, eps: float = 0.01,
-                 alpha: float = 0.01, relaxed: bool = False):
+                 alpha: float = 0.01, relaxed: bool = False, goal: np.ndarray = None):
         """ Initialize a nonlinear DS estimator.
 
         Note: the 'nn' method is equivalent to using behavioral cloning.
@@ -54,6 +54,7 @@ class NL_DS(PlanningPolicyInterface):
         self.__cuda = gpu
         self.__device = 'cuda:0' if torch.cuda.is_available() and self.__cuda else 'cpu'
         logger.info(f'Switching to {self.__device} for computation')
+        self.__goal  = torch.tensor(goal.astype(np.float32), device=self.__device)
 
         # network module
         self.__network_type = network
@@ -82,16 +83,18 @@ class NL_DS(PlanningPolicyInterface):
         # build the dataset
         self.__dataset = self._prepare_torch_dataset(trajectory, velocity, batch_size)
 
-        trajectory_test = torch.from_numpy(trajectory_test.astype(np.float32)).to(self.__device)
-        velocity_test = torch.from_numpy(velocity_test.astype(np.float32)).to(self.__device)
+        if trajectory_test is not None:
+            trajectory_test = torch.from_numpy(trajectory_test.astype(np.float32)).to(self.__device)
+            velocity_test = torch.from_numpy(velocity_test.astype(np.float32)).to(self.__device)
 
-        trajectory_test.requires_grad = True
-        velocity_test.requires_grad = True
+            trajectory_test.requires_grad = True
+            velocity_test.requires_grad = True
 
         # optimizer and scheduler
         optimizer = optim.Adam(self.__nn_module.parameters(), lr=lr_initial)
         scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=1.0,
-                            end_factor=lr_end_factor, total_iters=n_epochs)
+                                                end_factor=lr_end_factor,
+                                                total_iters=n_epochs)
         criterion = nn.MSELoss()
 
         # start time
@@ -112,6 +115,7 @@ class NL_DS(PlanningPolicyInterface):
             train_losses = []
 
             for trajs_t, vels_t in self.__dataset:
+
                 # forward pass
                 optimizer.zero_grad()
                 y_pred = self.__nn_module(trajs_t)
@@ -239,14 +243,16 @@ class NL_DS(PlanningPolicyInterface):
         elif self.__network_type == 'sdsef':
             self.__nn_module = init_sdsef_model(input_dim=self.__data_dim, device=self.__device)
         elif self.__network_type == 'snds':
-            self.__nn_module, self.__lpf  = joint_lpf_ds_model(device=self.__device, lsd=self.__data_dim, alpha=self.__alpha, eps=self.__epsilon,
-                                                               relaxed=self.__relaxed)
+            self.__nn_module, self.__lpf  = init_snds_model(device=self.__device, lsd=self.__data_dim, alpha=self.__alpha, eps=self.__epsilon,
+                                                               relaxed=self.__relaxed, goal=self.__goal)
         else:
             raise NotImplementedError(f'Network type {self.__network_type} is not available!')
 
 
     def _prepare_torch_dataset(self, trajs: np.ndarray, vels: np.ndarray, batch_size: int):
             """ Convert npy data to tensor dataset.
+
+            NOTE: Batch size is fixed for small dataset
 
             Args:
                 trajs (np.ndarray): Demonstrated trajectories.
@@ -266,5 +272,6 @@ class NL_DS(PlanningPolicyInterface):
 
             # generate a dataloader
             dataset = TensorDataset(x, y)
+            batch_size = batch_size if batch_size < trajs.shape[0] else trajs.shape[0]
             return DataLoader(dataset, batch_size=batch_size, shuffle=True)
 

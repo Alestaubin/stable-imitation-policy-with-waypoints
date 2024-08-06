@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 sys.path.append(os.pardir)
-from lipnet.group_sort import GroupSort
-from lipnet.bjorck_linear import BjorckLinear
+from lib.lipnet.group_sort import GroupSort
+from lib.lipnet.bjorck_linear import BjorckLinear
 from torch.autograd import Variable
 
 
@@ -97,7 +97,7 @@ class LSTM(nn.Module):
 
 
 class LNET(nn.Module):
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, k: float = 1):
         """Initiate a Lipnet module.
 
         Args:
@@ -105,6 +105,7 @@ class LNET(nn.Module):
             output_dim (int): Size of the output.
         """
         super(LNET, self).__init__()
+        self.__k = k
 
         # Set GroupSort activation
         self.act1 = GroupSort(1, axis=1)
@@ -113,9 +114,9 @@ class LNET(nn.Module):
 
         # Fully connected layers
         self.fc1 = BjorckLinear(input_shape, 128)
-        self.fc2 = BjorckLinear(128, 64)
-        self.fc3 = BjorckLinear(64, 16)
-        self.fc4 = BjorckLinear(16, output_shape)
+        self.fc2 = BjorckLinear(128, 128)
+        self.fc3 = BjorckLinear(128, 128)
+        self.fc4 = BjorckLinear(128, output_shape)
 
     def forward(self, x):
         """ Forward pass of Lipnet.
@@ -141,4 +142,4 @@ class LNET(nn.Module):
 
         # output layer
         x = self.fc4(x)
-        return x
+        return x * self.__k

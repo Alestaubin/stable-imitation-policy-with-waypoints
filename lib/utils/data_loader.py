@@ -12,9 +12,9 @@ from scipy.io import loadmat
 import h5py
 
 sys.path.append(os.pardir)
-from policy_interface import PlanningPolicyInterface
-from utils.log_config import logger
-from utils.utils import calibrate, is_negdef, linear_ds, normalize
+from lib.policy_interface import PlanningPolicyInterface
+from lib.utils.log_config import logger
+from lib.utils.utils import calibrate, is_negdef, linear_ds, normalize
 
 import pyLasaDataset as hw_data_module
 lasa_selected_motions = ["GShape", "PShape", "Sine", "Worm", "Angle", "CShape", "NShape", "DoubleBendedLine"]

@@ -54,11 +54,10 @@ def plot_trajectory(trajectory: np.ndarray, title: str = "", file_name: str = ""
 
     plt.grid()
 
-    start_points = np.array([trajectory[idx * n_samples] for  \
-                             idx in range(int(len(trajectory) / n_samples))])
+    start_points = trajectory[0]
     goal_point = trajectory[-1]
 
-    start_handle = plt.scatter(start_points[:, 0], start_points[:, 1], marker='x',
+    start_handle = plt.scatter(start_points[0], start_points[1], marker='x',
         color=PlotConfigs.ANNOTATE_COLOR, linewidth=3, s=120, label='Start')
     target_handle = plt.scatter(goal_point[0], goal_point[1], marker='*',
         color=PlotConfigs.ANNOTATE_COLOR, linewidth=2, s=250, label='Target')
@@ -138,17 +137,17 @@ def plot_gmm(trajectory: np.ndarray, means: List, covariances: List):
     plt.show()
 
 
-def plot_ds_stream(ds, trajectory: np.ndarray, title: str = None,
-                   space_stretch: float = 0.1, stream_density: float = 1.0,
-                   policy_density: int = 100, traj_density: int = 0.4,
-                   file_name: str = "", save_dir: str = "", n_samples: int = 1000,
-                   other_starts: List[np.ndarray] = None, n_reprod_trajs: int = 3,
-                   show_legends: bool = True, show_rollouts: bool = True,
-                   show_arrows: bool = False, save_rollouts: bool = False):
+def plot_ds_2Dstream(ds_policy, trajectory: np.ndarray, title: str = None,
+                     space_stretch: float = 0.1, stream_density: float = 1.0,
+                     policy_density: int = 100, file_name: str = "",
+                     save_dir: str = "", show_legends: bool = True,
+                     show_rollouts: bool = True):
     """ Plot a policy for given a DS model and trajectories.
 
+    NOTE: Only for 2D view for now.
+
     Args:
-        ds (PlanningPolicyInterface): A dynamical system for motion generation task.
+        ds_policy (PlanningPolicyInterface): A dynamical system for motion generation task.
         trajectory (np.ndarray): Input trajectory array (n_samples, dim).
         title (str, optional): Title of the plot. Defaults to None.
         space_stretch (float, optional): How much of the entire space to show in vector map.
@@ -156,16 +155,16 @@ def plot_ds_stream(ds, trajectory: np.ndarray, title: str = None,
 
         stream_density (float, optional): Density of policy streams. Defaults to 1.0.
         policy_density (int, optional): Density of on-trajectory policy arrows. Defaults to 10.
-        traj_density (int, optional): Density of expert's trajectories. Defaults to 0.4.
+
         file_name(str, optional): Name of the plot file. Defaults to "".
         save_dir(str, optional): Provide a save directory for the figure. Leave empty to
             skip saving. Defaults to "".
-        n_samples (int, optional): Number of samples in each demonstration. Defaults to 1000.
-        other_starts (List[np.ndarray], optional): Other starting points to show stability.
-            Defaults to None.
-        n_reprod_trajs (int, optional): Number of trajectories to reproduce. Defaults to 10.
         show_legends (bool, optional): Opt to show the legends. Defaults to True.
     """
+
+    if trajectory.shape[1] > 2:
+        print(f'Stream plot is NOT possible for {trajectory.shape[1]}D trajectory')
+        return
 
     # find trajectory limits
     x_min, x_max, y_min, y_max = find_limits(trajectory)
@@ -173,22 +172,17 @@ def plot_ds_stream(ds, trajectory: np.ndarray, title: str = None,
     # calibrate the axis
     plt.figure(figsize=PlotConfigs.FIGURE_SIZE, dpi=PlotConfigs.FIGURE_DPI)
 
+    # set axis limits
     axes = plt.gca()
     axes.set_xlim([x_min - space_stretch, x_max + space_stretch])
     axes.set_ylim([y_min - space_stretch, y_max + space_stretch])
 
-    # plot the trajectory
-    start_points = np.array([trajectory[idx * n_samples] for  \
-                             idx in range(int(len(trajectory) / n_samples))])
-    goal_point = trajectory[-1]
+    plt.scatter(trajectory[:, 0], trajectory[:, 1], marker='o', s=3, color=PlotConfigs.TRAJECTORY_COLOR)
+    plt.grid()
 
-    trimed_trajectory_idx = np.random.choice(a=len(trajectory),
-                                             size=int(traj_density * len(trajectory)),
-                                             replace=False)
-    trimed_trajectory = np.array(trajectory[trimed_trajectory_idx])
-    plt.scatter(trimed_trajectory[:, 0], trimed_trajectory[:, 1],
-                color=PlotConfigs.TRAJECTORY_COLOR, marker='o',
-                s=5, label='Expert Demonstrations')
+    # plot the trajectory
+    start_point = trajectory[0].reshape(1, trajectory.shape[1])
+    goal_point = trajectory[-1].reshape(1, trajectory.shape[1])
 
     # generate the grid data
     x = np.linspace(x_min - space_stretch, x_max + space_stretch, policy_density)
@@ -196,74 +190,40 @@ def plot_ds_stream(ds, trajectory: np.ndarray, title: str = None,
     X, Y = np.meshgrid(x, y)
 
     data = np.concatenate([X.reshape(-1,1), Y.reshape(-1,1)], axis=1)
-    Z = np.apply_along_axis(lambda x: ds.predict(np.array([x])), 1, data)
+    Z = np.apply_along_axis(lambda x: ds_policy.predict(np.array([x])), 1, data)
     U, V = Z[:,:,0].reshape(policy_density, policy_density), \
         Z[:,:,1].reshape(policy_density, policy_density)
 
     # create streamplot
     plt.streamplot(X, Y, U, V, density=stream_density, color=PlotConfigs.POLICY_COLOR, linewidth=1)
 
-    # on-trajectory policy-arrows
-    if show_arrows:
-        trimed_trajectory_idx = np.random.choice(a=len(trajectory),
-                                                size=int(0.1 * traj_density * len(trajectory)),
-                                                replace=False)
-        trimed_trajectory = np.array(trajectory[trimed_trajectory_idx])
-
-        res = ds.predict(trimed_trajectory)
-        assert len(res.shape) == 2, "predict function is returning incorrect preds array!"
-
-        for idx, point in enumerate(trimed_trajectory):
-            norm = np.linalg.norm(res[idx])
-            scale = 45 * norm
-
-            plt.arrow(point[0], point[1], res[idx][0] / scale, res[idx][1] / scale,
-                      color=PlotConfigs.ARROW_COLOR, width=0.004, label='Action')
-
     # on-trajectory policy-rollouts
     if show_rollouts:
-        dt: float = 0.01
+        dt: float = 0.05
 
-        if n_reprod_trajs > len(start_points):
-            n_reprod_trajs = len(start_points)
+        rollout: List[np.ndarray] = []
+        rollout.append(start_point)
+        distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
 
-        starts_idx = np.random.choice(a=len(start_points), size=n_reprod_trajs, replace=False)
-        starts = start_points[starts_idx]
-        starts = starts + other_starts if other_starts is not None else starts
-        limit = np.linalg.norm([(x_max - x_min), (y_max - y_min)]) / 10
-        for idx, start in enumerate(starts):
-            simulated_traj: List[np.ndarray] = []
-            simulated_traj.append(np.array([start]).reshape(1, 2))
+        while distance_to_target > 0.01  and len(rollout) < 2e3: # rollout termination conditions, hardcoded for now
+            vel = ds_policy.predict(rollout[-1])
+            rollout.append(rollout[-1] + dt * vel)
+            distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
 
-            distance_to_target = np.linalg.norm(simulated_traj[-1] - goal_point)
-            while  distance_to_target > limit  and len(simulated_traj) < 2e3:
-                vel = ds.predict(simulated_traj[-1])
-                simulated_traj.append(simulated_traj[-1] + dt * vel)
-                distance_to_target = np.linalg.norm(simulated_traj[-1] - goal_point)
+        print(f'Rollout finished with distance to target: {distance_to_target}')
+        rollout = np.array(rollout).squeeze()
 
-            simulated_traj = np.array(simulated_traj)
-            simulated_traj = simulated_traj.reshape(simulated_traj.shape[0],
-                                                    simulated_traj.shape[2])
+        plt.plot(rollout[:, 0], rollout[:, 1], color=PlotConfigs.ROLLOUT_COLOR, linewidth=2)
 
-            if save_rollouts:
-                name = file_name if file_name != "" else 'plot'
-                np.save(os.path.join(save_dir, name, f'_rollout_{idx}'), simulated_traj)
-            plt.plot(simulated_traj[:, 0], simulated_traj[:, 1],
-                    color=PlotConfigs.ROLLOUT_COLOR, linewidth=2)
-
-
-    # plot trajectory start and end
-    start_handle = plt.scatter(start_points[:, 0], start_points[:, 1], marker='x',
-        color=PlotConfigs.ANNOTATE_COLOR, linewidth=3, s=120, label='Start')
-    target_handle = plt.scatter(goal_point[0], goal_point[1], marker='*',
-        color=PlotConfigs.ANNOTATE_COLOR, linewidth=2, s=250, label='Target')
-
+    # legend handles
     green_arrows = plt.Line2D([0], [0], color=PlotConfigs.POLICY_COLOR,
                               linestyle='-', marker='>', label='Policy')
     red_arrows = plt.Line2D([0], [0], color=PlotConfigs.ROLLOUT_COLOR,
                             linestyle='-', marker='>', label='Reproduced')
     blue_dots = plt.Line2D([0], [0], color=PlotConfigs.TRAJECTORY_COLOR,
                            marker='o', label='Expert Demonstrations')
+    start_handle = plt.scatter(start_point[:, 0], start_point[:, 1], marker='x', color=PlotConfigs.ANNOTATE_COLOR, linewidth=3, s=120, label='Start')
+    target_handle = plt.scatter(goal_point[:, 0], goal_point[:, 1], marker='*', color=PlotConfigs.ANNOTATE_COLOR, linewidth=2, s=250, label='Target')
 
     if show_legends:
         plt.xlabel('X1', fontsize=PlotConfigs.LABEL_SIZE)
@@ -467,6 +427,11 @@ def plot_contours(lpf, trajectory, step_size: float = 0.001, save_dir: str = "",
         file_name(str, ""): Name of the file to save.
         step_size (float, 0.001): Step size for contours. Default to 1e-3.
     """
+
+    if trajectory.shape[1] > 2:
+        print(f'Contour plot is NOT possible for {trajectory.shape[1]}D trajectory')
+        return
+
     # find trajectory limits
     x_min, x_max, y_min, y_max = find_limits(trajectory)
     x_min, x_max = x_min - space_stretch, x_max + space_stretch

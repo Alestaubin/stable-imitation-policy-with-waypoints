@@ -15,10 +15,10 @@ from scipy.linalg import block_diag
 
 from typing import List
 
-from utils.log_config import logger
-from utils.data_loader import load_pylasa_data
-from utils.utils import is_posdef, is_negdef, mse
-from sos.symbolic_plyds import SymbolicPLYDS
+from lib.utils.log_config import logger
+from lib.utils.data_loader import load_pylasa_data
+from lib.utils.utils import is_posdef, is_negdef, mse
+from lib.sos.symbolic_plyds import SymbolicPLYDS
 
 from functools import partial
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
             preds = np.apply_along_axis(ds, 1, x)
             return preds
 
-    from utils.plot_tools import plot_ds_stream, plot_contours
-    plot_ds_stream(ds_c, positions_py[:1000])
+    from utils.plot_tools import plot_ds_2Dstream, plot_contours
+    plot_ds_2Dstream(ds_c, positions_py[:1000])
     plot_contours(funs["lpf"], positions_py)
     plot_contours(funs["dlpf_dt"], positions_py, color='Reds')

@@ -96,7 +96,7 @@ if __name__ == '__main__':
             preds = ds(x.T)
             return preds
 
-    from utils.plot_tools import plot_ds_stream, plot_contours
-    plot_ds_stream(ds_c, positions_py, show_rollouts=True)
+    from utils.plot_tools import plot_ds_2Dstream, plot_contours
+    plot_ds_2Dstream(ds_c, positions_py, show_rollouts=True)
     plot_contours(funs["lpf"], positions_py)
     plot_contours(funs["dlpf_dt"], positions_py)

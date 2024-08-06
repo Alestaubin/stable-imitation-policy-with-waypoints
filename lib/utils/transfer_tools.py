@@ -11,7 +11,7 @@ sys.path.append(os.pardir)
 from learn_gmm_ds import SE_DS
 from utils.log_config import logger
 from utils.utils import mse
-from utils.plot_tools import plot_ds_stream
+from utils.plot_tools import plot_ds_2Dstream
 
 
 def cross_validate(src_trajectory: np.ndarray, src_velocity: np.ndarray,
@@ -92,7 +92,7 @@ def transfer_retrain(src_model: SE_DS, target_trajectories: np.ndarray,
         initial_guess=initial_param, is_linear=is_linear, tol=tol)
 
     if show_plots:
-        plot_ds_stream(trg_model, target_trajectories, "Retrained DS Model")
+        plot_ds_2Dstream(trg_model, target_trajectories, "Retrained DS Model")
 
     return trg_model
 

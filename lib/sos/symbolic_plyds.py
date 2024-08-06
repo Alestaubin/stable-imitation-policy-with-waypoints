@@ -7,7 +7,7 @@ import sympy
 import numpy as np
 
 from typing import List
-from utils.log_config import logger
+from lib.utils.log_config import logger
 
 
 class SymbolicPLYDS:

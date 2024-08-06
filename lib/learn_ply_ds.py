@@ -6,12 +6,12 @@ import pickle
 import numpy as np
 import cvxpy as cp
 
-from policy_interface import PlanningPolicyInterface
+from lib.policy_interface import PlanningPolicyInterface
 
-from sos.optimize_plyds_cvxpy import optimize as optimize_c
-from sos.optimize_plyds_scipy import optimize as optimize_s
+from lib.sos.optimize_plyds_cvxpy import optimize as optimize_c
+from lib.sos.optimize_plyds_scipy import optimize as optimize_s
 
-from utils.log_config import logger
+from lib.utils.log_config import logger
 
 
 class PLY_DS(PlanningPolicyInterface):

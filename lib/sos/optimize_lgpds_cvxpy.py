@@ -110,7 +110,7 @@ if __name__ == '__main__':
             preds = np.apply_along_axis(ds, 1, x)
             return preds
 
-    from utils.plot_tools import plot_ds_stream, plot_contours
-    plot_ds_stream(ds_c, positions_py[:1000])
+    from utils.plot_tools import plot_ds_2Dstream, plot_contours
+    plot_ds_2Dstream(ds_c, positions_py[:1000])
     # plot_contours(funs["lpf"], positions_py)
     # plot_contours(funs["dlpf_dt"], positions_py, color='Reds')
