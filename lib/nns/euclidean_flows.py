@@ -300,7 +300,8 @@ def get_jacobian(net, x, output_dims, reshape_flag=True):
 
 def init_sdsef_model(input_dim: int = 2, coupling_network_type = 'rffn',
                      num_blocks = 10, num_hidden = 200, sigma = 0.45,
-                     s_act = None, t_act = None, eps = 1e-12, device = 'cpu'):
+                     s_act = None, t_act = None, eps = 1e-12, device = 'cpu',
+                     goal: np.ndarray = None):
     """ Optimize and learn the transformations in SDS-EF.
 
     Args:
@@ -317,7 +318,7 @@ def init_sdsef_model(input_dim: int = 2, coupling_network_type = 'rffn',
         torch.nn: the best trained model
     """
 
-    goal = torch.zeros(1, input_dim, device=device) # goal is fixed at zero assuming calibration
+    # input dim
     n_dims = input_dim
 
     # bijection network

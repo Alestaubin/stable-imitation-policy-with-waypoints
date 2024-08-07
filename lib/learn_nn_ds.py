@@ -54,7 +54,11 @@ class NL_DS(PlanningPolicyInterface):
         self.__cuda = gpu
         self.__device = 'cuda:0' if torch.cuda.is_available() and self.__cuda else 'cpu'
         logger.info(f'Switching to {self.__device} for computation')
-        self.__goal  = torch.tensor(goal.astype(np.float32), device=self.__device)
+
+        if goal is not None:
+            self.__goal  = torch.tensor(goal.astype(np.float32), device=self.__device)
+        else:
+            self.__goal = torch.zeros(1, self.__data_dim, device=self.__device)
 
         # network module
         self.__network_type = network
@@ -124,8 +128,9 @@ class NL_DS(PlanningPolicyInterface):
                 loss = criterion(y_pred, vels_t)
                 train_losses.append(loss.item())
 
-                if loss > loss_clip:
+                if loss > loss_clip or loss == torch.nan:
                     self._initialize_network()
+                    optimizer = optim.Adam(self.__nn_module.parameters(), lr=lr_initial)
                     logger.warn('Loss value is too large, reinitializing')
                     continue
 
@@ -166,6 +171,7 @@ class NL_DS(PlanningPolicyInterface):
             if train_loss == torch.nan or train_loss == torch.inf:
                 logger.info(f'Nan/Inf loss function acquired, reinitializing...')
                 self._initialize_network()
+
 
         total_time = time.time() - start_time
         logger.info(f'Training concluded in {total_time:.4f} seconds')
@@ -230,6 +236,9 @@ class NL_DS(PlanningPolicyInterface):
             dir (str, optional): Save directory. Defaults to '../res'.
         """
 
+        if self.__network_type == 'sdsef': # TODO: Bug in sds-ef saving process
+            return
+
         os.makedirs(os.path.join(dir, f'{self.__network_type}'), exist_ok=True)
         torch.save(self.__nn_module, os.path.join(dir, f'{self.__network_type}',
                                                   f'{model_name}.pt'))
@@ -241,7 +250,7 @@ class NL_DS(PlanningPolicyInterface):
         elif self.__network_type == 'lnet':
             self.__nn_module = LNET(input_shape=self.__data_dim, output_shape=self.__data_dim)
         elif self.__network_type == 'sdsef':
-            self.__nn_module = init_sdsef_model(input_dim=self.__data_dim, device=self.__device)
+            self.__nn_module = init_sdsef_model(input_dim=self.__data_dim, device=self.__device, goal=self.__goal)
         elif self.__network_type == 'snds':
             self.__nn_module, self.__lpf  = init_snds_model(device=self.__device, lsd=self.__data_dim, alpha=self.__alpha, eps=self.__epsilon,
                                                                relaxed=self.__relaxed, goal=self.__goal)

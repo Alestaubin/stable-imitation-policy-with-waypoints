@@ -97,7 +97,7 @@ class LSTM(nn.Module):
 
 
 class LNET(nn.Module):
-    def __init__(self, input_shape, output_shape, k: float = 1):
+    def __init__(self, input_shape, output_shape, k: float = 0.0001):
         """Initiate a Lipnet module.
 
         Args:

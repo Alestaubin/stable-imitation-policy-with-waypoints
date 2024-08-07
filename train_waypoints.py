@@ -24,7 +24,7 @@ def waypoint_policy(learner_type: str,
                     waypoint_positions: np.ndarray,
                     waypoint_velocities: np.ndarray,
                     n_epochs: int,
-                    plot: Optional[bool] = True,
+                    plot: Optional[bool] = False,
                     model_name: Optional[str] = 'waypoint-test',
                     save_dir: str = 'res/',
                     gpu: Optional[bool] = True if torch.cuda.is_available() else False):
@@ -58,7 +58,7 @@ def waypoint_policy(learner_type: str,
     if learner_type in ["snds", "nn", "sdsef", "lnet"]:
         model = NL_DS(network=learner_type, data_dim=waypoint_position.shape[1], goal=goal, gpu=gpu,
                       eps=0.2, alpha=0.1) # NOTE: You might need to play with these values of eps and alpha to tune the model
-        model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs)
+        model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs, lr_initial=1e-4)
 
     else:
         raise NotImplementedError(f'Learner type {learner_type} not available!')
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         rollout.append(start_point)
 
         distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
-        while  distance_to_target > 0.02  and len(rollout) < 2e3: # rollout termination conditions, hardcoded for now
+        while  distance_to_target > 0.02  and len(rollout) < 5e3: # rollout termination conditions, hardcoded for now
             vel = ds_policy.predict(rollout[-1])
             rollout.append(rollout[-1] + dt * vel)
             distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
