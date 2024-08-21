@@ -1,0 +1,20 @@
+{
+    "learner_type": "snds",
+    "num_epochs": 10000,
+    "data_dir": "data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local_with_AWE_waypoints.hdf5",
+    "camera_names": ["agentview", "robot0_eye_in_hand"],
+    "demos": [1],
+    "dataset": null,
+    "video_path": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/videos/put_the_black_bowl_on_the_plate.mp4",
+    "multiplier": 0.01,
+    "all_demos": false,
+    "states": ["robot0_eef_pos", "robot0_eef_quat", "robot0_eef_vel_ang", "robot0_eef_vel_lin", "robot0_gripper_qpos"],
+    "waypoints_dataset": "AWE_waypoints_dp_err005",
+    "subgoals_dataset": "AWE_subgoals_dp_err005",
+    "device": "cpu",
+    "plot": false,
+    "playback": true,
+    "video_skip": 5,
+    "model_names": ["waypoint-test-snds-subgoal0-21-08-11-50", "waypoint-test-snds-subgoal1-21-08-11-50"],
+    "model_dir": "res/"
+}
