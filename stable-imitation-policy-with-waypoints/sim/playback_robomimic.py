@@ -10,9 +10,7 @@ import robosuite.utils.transform_utils as TransUtils
 import math
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
-
-
-
+from lib.utils.log_config import logger
 
 def get_next_ee_pos (policy, current_ee_pos, multiplier = 1):
     #convert to np array
@@ -83,11 +81,9 @@ def playback_dataset(
 
     # Get initial state of environment
     obs = env.reset()
-    print("Initial state of environment: ", obs)
     initial_ee_quat = obs["robot0_eef_quat"]
     mat = TransUtils.quat2mat(initial_ee_quat)
     euler = TransUtils.mat2euler(mat)
-    print("Initial ee ori: ", euler)
     
     #initial_ee_ori = euler
     action_num = 0
@@ -99,7 +95,6 @@ def playback_dataset(
             subgoal_pos = subgoals[i]["subgoal_pos"]
             distance = math.dist(subgoal_pos, current_pos)
 
-            
             # Get the next ee_pos
             next_ee_pos = np.array(get_next_ee_pos(policies[i], current_pos, multiplier)[0])
             #action_ori = initial_ee_ori
@@ -150,5 +145,4 @@ def playback_dataset(
 
     # Close video writer
     video_writer.close()
-if __name__ == "__main__":
-    pass
+

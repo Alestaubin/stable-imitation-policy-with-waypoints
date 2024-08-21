@@ -10,6 +10,7 @@ from scipy.spatial.transform import Rotation
 
 import robosuite
 import robosuite.utils.transform_utils as T
+from lib.utils.log_config import logger
 
 
 def linear_interpolation(p1, p2, t):
@@ -79,9 +80,9 @@ def geometric_waypoint_trajectory(actions, gt_states, waypoints, return_list=Fal
             )
             state_err.append(pos_err + rot_err)
 
-    # print the average and max error for pos and rot
-    # print(f"Average pos error: {np.mean(pos_err_list):.6f} \t Average rot error: {np.mean(rot_err_list):.6f}")
-    # print(f"Max pos error: {np.max(pos_err_list):.6f} \t Max rot error: {np.max(rot_err_list):.6f}")
+    # logger.info the average and max error for pos and rot
+    # logger.info(f"Average pos error: {np.mean(pos_err_list):.6f} \t Average rot error: {np.mean(rot_err_list):.6f}")
+    # logger.info(f"Max pos error: {np.max(pos_err_list):.6f} \t Max rot error: {np.max(rot_err_list):.6f}")
 
     if return_list:
         return total_traj_err(state_err), state_err
@@ -119,7 +120,7 @@ def pos_only_geometric_waypoint_trajectory(
             state_err.append(pos_err)
 
     # print the average and max error
-    print(
+    logger.info(
         f"Average pos error: {np.mean(state_err):.6f} \t Max pos error: {np.max(state_err):.6f}"
     )
 
@@ -183,7 +184,7 @@ def dp_waypoint_selection(
     # Check if err_threshold is too small, then return all points as waypoints
     min_error = func(actions, gt_states, list(range(1, num_frames)))
     if err_threshold < min_error:
-        print("Error threshold is too small, returning all points as waypoints.")
+        logger.info("Error threshold is too small, returning all points as waypoints.")
         return list(range(1, num_frames))
 
     # Populate the memoization table using an iterative bottom-up approach
@@ -216,10 +217,10 @@ def dp_waypoint_selection(
     # remove duplicates
     waypoints = list(set(waypoints))
     waypoints.sort()
-    print(
+    logger.info(
         f"Minimum number of waypoints: {len(waypoints)} \tTrajectory Error: {total_traj_err}"
     )
-    print(f"waypoint positions: {waypoints}")
+    logger.info(f"waypoint positions: {waypoints}")
 
     return waypoints
 
@@ -227,12 +228,12 @@ def subgoal_selection(dataset_path, start_idx, end_idx, waypoints_dataset_name):
     with h5py.File(dataset_path, "a") as f:
 
         for i in range(start_idx, end_idx):
-            print(f"Processing episode {i}")
+            logger.info(f"Processing episode {i}")
             if f"data/demo_{i}" in f:
                 try:
                     waypoint_indices = f[f"data/demo_{i}/{waypoints_dataset_name}"]
                 except:
-                    print(f"Waypoints for demo_{i} not found in the dataset.")
+                    logger.info(f"Waypoints for demo_{i} not found in the dataset.")
                     continue
                 waypoint_abs_actions = []
 
@@ -252,16 +253,16 @@ def subgoal_selection(dataset_path, start_idx, end_idx, waypoints_dataset_name):
                         prev_gripper_action = action[-1]
 
                 subgoals.append(waypoint_indices[-1]) # last waypoint must be a subgoal 
-                print(f"Subgoals for demo_{i}: {subgoals}")
+                logger.info(f"Subgoals for demo_{i}: {subgoals}")
                 
                 # save the subgoals
                 subgoals_dataset_name = str.replace(waypoints_dataset_name, "waypoints", "subgoals")
                 if f"data/demo_{i}/{subgoals_dataset_name}" in f:
-                    print("Deleting existing dataset ", f"data/demo_{i}/{subgoals_dataset_name}")
+                    logger.info("Deleting existing dataset ", f"data/demo_{i}/{subgoals_dataset_name}")
                     del f[f"data/demo_{i}/{subgoals_dataset_name}"]
                 f.create_dataset(f"data/demo_{i}/{subgoals_dataset_name}", data=subgoals)
             else:
-                print(f"demo_{i} not found in the dataset.")
+                logger.info(f"demo_{i} not found in the dataset.")
 
 def main(args):
 
@@ -274,7 +275,7 @@ def main(args):
     assert args.start_idx >= 0 and args.end_idx < len(demos)
     for idx in tqdm(range(args.start_idx, args.end_idx + 1), desc="Saving waypoints"):
         ep = demos[idx]
-        print(f"Processing episode {ep}")
+        logger.info(f"Processing episode {ep}")
 
         # prepare initial states to reload from
         states = f[f"data/{ep}/states"][()]
@@ -302,7 +303,7 @@ def main(args):
         try:
             actions = f[f"data/{ep}/abs_actions"][()]
         except:
-            print("No absolute actions found, need to convert first.")
+            logger.info("No absolute actions found, need to convert first.")
             raise NotImplementedError
 
         waypoint_selection = dp_waypoint_selection
@@ -319,13 +320,13 @@ def main(args):
 
         # save waypoints
         if f"data/{ep}/{args.group_name}" in f:
-            print("Deleting existing dataset ", f"data/{ep}/{args.group_name}")
+            logger.info("Deleting existing dataset ", f"data/{ep}/{args.group_name}")
             del f[f"data/{ep}/{args.group_name}"]
         
         f.create_dataset(f"data/{ep}/{args.group_name}", data=waypoints)
 
     f.close()
-    print(
+    logger.info(
         f"Average number of waypoints: {np.mean(num_waypoints)}, average number of frames: {np.mean(num_frames)}, average waypoint ratio: {np.mean(num_frames) / np.mean(num_waypoints)}"
     )
 

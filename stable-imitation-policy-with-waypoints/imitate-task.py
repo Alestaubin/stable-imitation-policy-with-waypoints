@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
 from typing import List, Optional, Union
-import multiprocessing as mp
+
+import torch.multiprocessing as mp
+from torch.multiprocessing import Queue
 
 from lib.learn_nn_ds import NL_DS
 from lib.learn_ply_ds import PLY_DS
@@ -37,6 +39,7 @@ def waypoint_policy(learner_type: str,
 
     name = f'{model_name}-{learner_type}-subgoal{subgoal}-{time_stamp()}'
     goal = waypoint_positions[-1].reshape(1, waypoint_positions.shape[1])
+    print(f'GOAL: {goal}')
 
     if learner_type in ["snds", "nn", "sdsef", "lnet"]:
         model = NL_DS(network=learner_type, data_dim=waypoint_positions.shape[1], goal=goal, device=device,
@@ -52,6 +55,7 @@ def waypoint_policy(learner_type: str,
             plot_contours(model.lpf, waypoint_positions, save_dir=save_dir, file_name=f'{name}-lpf')
 
     model.save(model_name=name, dir=save_dir)
+    print(f'Model saved as {name} in {save_dir}.')
     return model
 
 def plot_rollouts(data, policies):
@@ -107,7 +111,6 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         subgoal=subgoal_index
     )
     print(f"Subgoal {subgoal_index} training complete.")
-    return ds_policy
 
 def main(config_path):
     with open(config_path, 'r') as file:
@@ -119,7 +122,7 @@ def main(config_path):
 
     # get number of subgoals in the demo
     with h5py.File(config['data_dir'], 'r') as f: 
-        print(f"data/demo_{demo}/{config['subgoals_dataset']}")
+        #print(f"data/demo_{demo}/{config['subgoals_dataset']}")
         subgoals = f[f"data/demo_{demo}/{config['subgoals_dataset']}"]
         num_subgoals = len(subgoals)
 
@@ -136,9 +139,23 @@ def main(config_path):
     print(f'Data loaded from {config["data_dir"]}.')
     if config['model_names'] is None or config['model_dir'] is None:
         # Use multiprocessing to train a policy for each subgoal
-        with mp.Pool(processes=mp.cpu_count()) as pool:
-            results = [pool.apply_async(train_policy_for_subgoal, (data["subgoal_" + str(i)], config, i)) for i in range(num_subgoals)]
-            policies = [p.get() for p in results]
+        mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
+
+        ps = []
+
+        # Create and start processes
+        for i in range(len(data.keys())):
+            p = mp.Process(
+                target=train_policy_for_subgoal, 
+                args=(data["subgoal_" + str(i)], config, i),
+                name=f"{i}")
+            p.start()
+            ps.append(p)
+
+        # Wait for all processes to finish with a timeout
+        for p in ps:
+            p.join(timeout=120)  # Add a timeout to avoid indefinite hanging
+        return
     else:
         policies = []
         for i, model_name in enumerate(config['model_names']):
