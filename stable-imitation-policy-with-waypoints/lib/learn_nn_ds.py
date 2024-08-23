@@ -56,8 +56,6 @@ class NL_DS(PlanningPolicyInterface):
         logger.info(f'Switching to {self.__device} for computation')
 
         if goal is not None:
-            print(type(goal))
-            print(goal)
             #self.__goal  = torch.tensor(goal.astype(np.float32), device=self.__device)
             self.__goal = torch.tensor(goal, dtype=torch.float32, device=self.__device)
         else:

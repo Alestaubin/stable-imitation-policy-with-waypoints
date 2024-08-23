@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 
 import robosuite
 import robosuite.utils.transform_utils as T
-from lib.utils.log_config import logger
+from log_config import logger
 
 
 def linear_interpolation(p1, p2, t):
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         "--group_name",
         type=str,
         default="data",
-        help="name of the group in the hdf5 file",
+        help="name of the group in the hdf5 file to save to",
     )
 
     # index of the trajectory to playback. If omitted, playback trajectory 0.

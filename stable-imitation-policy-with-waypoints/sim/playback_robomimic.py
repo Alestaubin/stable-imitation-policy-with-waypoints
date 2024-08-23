@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 from lib.utils.log_config import logger
 
-def get_next_ee_pos (policy, current_ee_pos, multiplier = 1):
+def get_next_ee_pos (policy, current_ee_pos):
     #convert to np array
     current_ee_pos = np.array(current_ee_pos)
     # reshape
@@ -32,7 +32,9 @@ def playback_dataset(
     video_skip=5,
     policies=None,
     subgoals=None,
-    multiplier=1
+    multiplier=1,
+    force_dim = None,
+    force_time_step = None,
 ):
     """
     Playback a dataset with the given policies and waypoints, while also plotting the 
@@ -63,12 +65,12 @@ def playback_dataset(
     env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path)
     env_meta["env_kwargs"]["controller_configs"]["interpolation"] = "linear"
     env_meta["env_kwargs"]["controller_configs"]["control_delta"] = True # Whether to control the robot using delta or absolute commands (where absolute commands are taken in the world coordinate frame)
-    env_meta["env_kwargs"]["controller_configs"]["multiplier"] = 10 # This value scales the input commands before they are applied by the controller.
+    #env_meta["env_kwargs"]["controller_configs"]["multiplier"] = 10 # This value scales the input commands before they are applied by the controller.
 
     env = EnvUtils.create_env_from_metadata(env_meta=env_meta, render=False, render_offscreen=write_video)
-
+    print("=======================================================================================")
     print("ENV:",env)
-    print("SUBGOALS:",subgoals)
+    #print("SUBGOALS:",subgoals)
 
     if not EnvUtils.is_robosuite_env(env_meta): 
         raise ValueError("Playback only supported for robosuite environments.")
@@ -89,22 +91,30 @@ def playback_dataset(
     action_num = 0
     distances = []
 
+    apply_force = force_dim is not None and force_time_step is not None
+
     for i in range(len(subgoals)):
+        prev_distance = 0
         while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.008 and action_num < 5000:
             current_pos = obs["robot0_eef_pos"]
             subgoal_pos = subgoals[i]["subgoal_pos"]
-            distance = math.dist(subgoal_pos, current_pos)
+            distance = round(math.dist(subgoal_pos, current_pos), 5)
 
             # Get the next ee_pos
-            next_ee_pos = np.array(get_next_ee_pos(policies[i], current_pos, multiplier)[0])
+            next_ee_pos = np.array(get_next_ee_pos(policies[i], current_pos)[0])
             #action_ori = initial_ee_ori
             action_ori = np.array([0, 0, 0])  # NOTE: don't change the orientation for now
             action_gripper = np.array([0])  # NOTE: gripper action is 0 for now
             action = np.concatenate((next_ee_pos, action_ori, action_gripper))
-            action = np.array(action, copy=True)
+
+            if abs(prev_distance - distance)< 0.001: # if the distance is not changing, arm is stuck: multiply the action  
+                action = multiplier*np.array(action, copy=True)
+            else:
+                action = np.array(action, copy=True)
             if action_num % 25 == 0:
-                print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}, Action number: {action_num}")
-                print("Action: ", action)
+                prev_distance = distance
+                print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}{str(0)*(7-len(str(distance)))}, Action: {action},Action number: {str(0)*(6-len(str(action_num)))}{action_num}")
+                #print("Action: ", action)                
             
             # Take the action in the environment
             obs, _, _, _ = env.step(action)
@@ -118,15 +128,28 @@ def playback_dataset(
                 video_writer.append_data(video_img)
             
             action_num += 1
+            
+            # maybe apply external force to arm
+            if apply_force and action_num == force_time_step:
+                print("Applying external force to arm")
+                force_dim = np.array(force_dim)  # Example force vector in the x direction
+                body_id = env.env.sim.model.body_name2id('robot0_link7')  # Replace with the appropriate body name
+                env.env.sim.data.xfrc_applied[body_id, :3] = force_dim
+                obs, _, _, _ = env.step(action)
+                env.env.sim.data.xfrc_applied[body_id, :3] = np.zeros(3)
+                video_img = []
+                for cam_name in camera_names:
+                    video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
+                video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
+                video_writer.append_data(video_img)
+
         # Activate the gripper
         # NOTE : This is a temporary solution. There should be a check that the object has been grasped 
         action_gripper = subgoals[i]["subgoal_gripper"]
         action[-1] = action_gripper
         # do while loop
         while True:
-            print("Activating gripper: ", action)
-            print("Gripper qpos: ", obs["robot0_gripper_qpos"])
-            print("Gripper qvel: ", obs["robot0_gripper_qvel"])
+            print(f'Activating gripper: {action}, Gripper qpos: {obs["robot0_gripper_qpos"]}, Gripper qvel: {obs["robot0_gripper_qvel"]}')
             obs, _, _, _ = env.step(action)
             video_img = []
             for cam_name in camera_names:

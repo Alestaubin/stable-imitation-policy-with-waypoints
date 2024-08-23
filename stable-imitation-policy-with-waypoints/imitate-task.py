@@ -33,15 +33,24 @@ def waypoint_policy(learner_type: str,
                     model_name: Optional[str] = 'waypoint-test',
                     save_dir: str = 'res/',
                     device: str = 'cuda:0' if torch.cuda.is_available() else 'cpu',
-                    subgoal: Optional[int] = None):
+                    subgoal: Optional[int] = None,
+                    augment_rate: Optional[int] = None,
+                    augment_std_dev: Optional[float] = None) :
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
     name = f'{model_name}-{learner_type}-subgoal{subgoal}-{time_stamp()}'
     goal = waypoint_positions[-1].reshape(1, waypoint_positions.shape[1])
+    # set goal velocity to zero
+    # waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
     print(f'GOAL: {goal}')
 
-    if learner_type in ["snds", "nn", "sdsef", "lnet"]:
+    # Maybe augment the data
+    if augment_rate is not None and augment_std_dev is not None:   
+        logger.info(f'Augmenting data with rate {augment_rate} and std dev {augment_std_dev}.')
+        waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, augment_std_dev, augment_rate)
+        
+    if learner_type in ["snds", "nn", "sdsef", "lnet"]: 
         model = NL_DS(network=learner_type, data_dim=waypoint_positions.shape[1], goal=goal, device=device,
                       eps=0.2, alpha=0.1)
         model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs, lr_initial=1e-4)
@@ -68,7 +77,7 @@ def plot_rollouts(data, policies):
 
             rollout = [start_point]
             distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
-            while distance_to_target > 0.02 and len(rollout) < 5e3:
+            while distance_to_target > 0.01 and len(rollout) < 5e3:
                 vel = ds_policy.predict(rollout[-1])
 
                 if not isinstance(dt, np.ndarray):
@@ -108,9 +117,37 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         waypoint_velocities=waypoint_velocity,
         n_epochs=config['num_epochs'],
         device=config['device'],
-        subgoal=subgoal_index
+        subgoal=subgoal_index,
+        augment_rate=config['augment_rate'],
+        augment_std_dev=config['augment_std_dev'],
     )
     print(f"Subgoal {subgoal_index} training complete.")
+
+def augment_data(waypoint_positions, waypoint_velocities, augment_std_dev=0.01, augment_rate=5):
+    """Augment the data by adding Gaussian noise to the waypoints."""
+
+    new_positions = []
+    new_velocities = []
+
+    for i in range(len(waypoint_positions)):
+        # for each original point, generate augment_rate new points
+        for _ in range(augment_rate):
+            noise = np.random.normal(0, augment_std_dev, waypoint_positions[i].shape)
+            new_position = waypoint_positions[i] + noise
+            new_positions.append(new_position)
+            new_velocities.append(waypoint_velocities[i])
+
+    # Convert to numpy arrays
+    new_positions = np.array(new_positions)
+    new_velocities = np.array(new_velocities)
+
+    # Combine with the original data 
+    augmented_positions = np.vstack((waypoint_positions, new_positions))
+    augmented_velocities = np.vstack((waypoint_velocities, new_velocities))
+    for i in range(len(augmented_positions)):
+        print(f"Augmented position {i}: {augmented_positions[i]}, Augmented velocity {i}: {augmented_velocities[i]}")
+    return augmented_positions, augmented_velocities
+
 
 def main(config_path):
     with open(config_path, 'r') as file:
@@ -180,7 +217,9 @@ def main(config_path):
             subgoals=[{"subgoal_pos": subgoal_data["waypoint_position"][-1],
                        "subgoal_ori": subgoal_data["waypoint_orientation"][-1],
                        "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
-            multiplier=config['multiplier']
+            multiplier=config['multiplier'], 
+            force_dim=config['force_dim'],
+            force_time_step=config['force_time_step']
         )
     print("Process complete.")
 
