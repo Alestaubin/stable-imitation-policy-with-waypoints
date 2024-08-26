@@ -7,7 +7,8 @@ import argparse
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D, proj3d
+
 import json
 from typing import List, Optional, Union
 
@@ -45,11 +46,17 @@ def waypoint_policy(learner_type: str,
     # waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
     print(f'GOAL: {goal}')
 
+    scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Waypoints')
     # Maybe augment the data
     if augment_rate is not None and augment_std_dev is not None:   
         logger.info(f'Augmenting data with rate {augment_rate} and std dev {augment_std_dev}.')
         waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, augment_std_dev, augment_rate)
-        
+        scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Augmented Waypoints')
+
+    '''
+    if subgoal==1: 
+        waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, 0.01, 5)
+    '''
     if learner_type in ["snds", "nn", "sdsef", "lnet"]: 
         model = NL_DS(network=learner_type, data_dim=waypoint_positions.shape[1], goal=goal, device=device,
                       eps=0.2, alpha=0.1)
@@ -93,7 +100,6 @@ def plot_rollouts(data, policies):
 
             x, y, z = waypoint_position[:, 0], waypoint_position[:, 1], waypoint_position[:, 2]
             x_rollout, y_rollout, z_rollout = rollout[:, 0], rollout[:, 1], rollout[:, 2]
-
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             ax.plot(x, y, z, c='b', label='waypoints')
@@ -103,7 +109,64 @@ def plot_rollouts(data, policies):
             ax.set_zlabel('X3')
             ax.legend()
             ax.set_title('DS Policy Waypoints')
-            fig.savefig(f'waypoints-policy-subgoal-{i}.png')
+            fig.savefig(f'yo-waypoints-policy-subgoal-{i}.png')
+
+            fig2, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+            # X-Y projection
+            axes[0].plot(x, y, 'b', label='waypoints')
+            axes[0].plot(x_rollout, y_rollout, 'r', label='rollout')
+            axes[0].set_xlabel('X1')
+            axes[0].set_ylabel('X2')
+            axes[0].set_title('X-Y Projection')
+            axes[0].legend()
+
+            # X-Z projection
+            axes[1].plot(x, z, 'b', label='waypoints')
+            axes[1].plot(x_rollout, z_rollout, 'r', label='rollout')
+            axes[1].set_xlabel('X1')
+            axes[1].set_ylabel('X3')
+            axes[1].set_title('X-Z Projection')
+            axes[1].legend()
+
+            # Y-Z projection
+            axes[2].plot(y, z, 'b', label='waypoints')
+            axes[2].plot(y_rollout, z_rollout, 'r', label='rollout')
+            axes[2].set_xlabel('X2')
+            axes[2].set_ylabel('X3')
+            axes[2].set_title('Y-Z Projection')
+            axes[2].legend()
+
+            plt.suptitle('2D Projections of the 3D Plot')
+
+            fig2.savefig(f'waypoints-projection-policy-subgoal-{i}.png')
+        
+
+def scatter_waypoints(waypoint_position, waypoint_velocity, title):
+    x, y, z = waypoint_position[:, 0], waypoint_position[:, 1], waypoint_position[:, 2]
+    u, v, w = 0.1*waypoint_velocity[:, 0], 0.1*waypoint_velocity[:, 1], 0.1*waypoint_velocity[:, 2]
+
+    # Create a 3D plot
+    fig = plt.figure(figsize=(12, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot positions
+    ax.scatter(x, y, z, color='blue', label='Positions')
+
+    # Plot velocity vectors (arrows)
+    ax.quiver(x, y, z, u, v, w, color='red', label='Velocities')
+
+    # Labels and legend
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.legend()
+
+    ax.set_title(title)
+
+    # save the plot
+    fig.savefig(f'{title.replace(" ", "-")}.png')
+
 
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
@@ -144,8 +207,10 @@ def augment_data(waypoint_positions, waypoint_velocities, augment_std_dev=0.01, 
     # Combine with the original data 
     augmented_positions = np.vstack((waypoint_positions, new_positions))
     augmented_velocities = np.vstack((waypoint_velocities, new_velocities))
+    '''    
     for i in range(len(augmented_positions)):
         print(f"Augmented position {i}: {augmented_positions[i]}, Augmented velocity {i}: {augmented_velocities[i]}")
+    '''    
     return augmented_positions, augmented_velocities
 
 
@@ -157,6 +222,16 @@ def main(config_path):
     data = {}
     demo = demos[0]
 
+    if config['seed'] is not None:
+        print(f"Setting seed to {config['seed']}")
+        seed = config['seed']
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        else:
+            torch.manual_seed(seed)
+    
     # get number of subgoals in the demo
     with h5py.File(config['data_dir'], 'r') as f: 
         #print(f"data/demo_{demo}/{config['subgoals_dataset']}")
@@ -203,7 +278,7 @@ def main(config_path):
             # Load the model
             model.load(model_name=model_name, dir=config["model_dir"])
             policies.append(model)
-    # maybe plot the rollouts NOTE: doesn't work on mac...
+    # maybe plot the rollouts 
     if config['plot']:
         plot_rollouts(data, policies)
     if config['playback']:

@@ -27,6 +27,55 @@ This repository builds on top of the following two publications:
 * **PLYDS** — A. Abyaneh and H.-C. Lin. Learning Lyapunov-stable polynomial dynamical systems through imitation. In 7th Annual
 Conference on Robot Learning, 2023.
 
+## Installation 
+First, clone this repository on your device.
+```
+git clone https://github.com/Alestaubin/stable-imitation-policy-with-waypoints.git
+cd stable-imitation-policy-with-waypoints
+```
+
+Make sure you have Conda installed, or install it from [Anaconda Website](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html).
+
+### Mac
+Create and activate a new conda environment from the `environment-mac.yml` file.
+```
+conda env create -f environment-mac.yml
+conda activate IL-waypoint
+```
+Install packages required for the simulation. 
+```
+# Install MuJoCo
+pip install mujoco
+
+# Install robosuite
+git clone https://github.com/ARISE-Initiative/robosuite.git
+cd robosuite
+git checkout v1.4.1_libero
+pip install -r requirements.txt
+pip install -r requirements-extra.txt
+pip install -e .
+
+# Install BDDL
+cd ..
+git clone https://github.com/StanfordVL/bddl.git
+cd bddl
+pip install -e .
+
+# Install LIBERO
+cd ..
+git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git
+cd LIBERO
+pip install -r requirements.txt
+pip install -e .
+
+# Install Robomimic
+cd ..
+git clone https://github.com/ARISE-Initiative/robomimic
+cd robomimic
+git checkout mimicplay-libero
+pip install -e .
+
+```
 ## Datasets
 
 See [this](https://drive.google.com/drive/folders/1pUf4rRhM_E5hXXHynWmEhNyuBOxJXORY?usp=sharing) drive for the hdf5 datasets. Use the following commands to download the data.
@@ -35,53 +84,71 @@ See [this](https://drive.google.com/drive/folders/1pUf4rRhM_E5hXXHynWmEhNyuBOxJX
 cd data
 gdown --folder https://drive.google.com/drive/folders/1pV-Lii52PF1djSSOAlLdCLpyS9zDAFIs?usp=drive_link
 ```
-
-## Getting started
-
-This section provides instructions on reproducibility and basic functionalities of the repository.
-
-### Repository structure
+## Repository structure
 
 To acquire a better understanding of the environment and features, you just need to clone the repository into your local machine. At first glance, the structure of the project appears below.
 
 ```bash
-    ├── src          # Python source files of the project.
-    ├── data         # Figures and other data.
-    ├── res          # Resources like saved policies.
-    ├── LICENSE
-    ├── CONTRIBUTING.md
-    └── README.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── build/
+├── environment-mac.yaml
+├── environment.yaml
+├── setup.py
+├── stable-imitation-policy-with-waypoints # python package
+│   ├── config/ # config files for imitate-task.py
+│   ├── data/ # simulation datasets
+│   ├── imitate-task.py
+│   ├── lib/
+│   │   ├── envs/
+│   │   ├── learn_gmm_ds.py
+│   │   ├── learn_nn_ds.py
+│   │   ├── learn_ply_ds.py
+│   │   ├── learn_rl_ds.py
+│   │   ├── lipnet/
+│   │   ├── nns/
+│   │   ├── policy_interface.py
+│   │   ├── rls
+│   │   ├── seds/
+│   │   ├── sos/
+│   │   └── utils/
+│   ├── res/ # saved policies
+│   ├── sim
+│   │   └── playback_robomimic.py
+│   ├── src/
+│   ├── train_waypoints.py
+│   └── videos/
+└── stable_imitation_policy_with_waypoints.egg-info
 ```
+## Training
 
-### Dependencies and Conda
-
-All the dependencies for this project are summarized as a Conda environment in [environment.yaml](environment.yaml). The following command should automatically install the entire set of dependencies.
-
-```bash
-conda env create -f environment.yaml
+### config file
+Create a config file with the following structure: 
+```json
+{
+    "learner_type": "snds", # the policy to train
+    "num_epochs": 10000, # the max number of epochs
+    "data_dir": "data/dataset.hdf5", # the path to the hdf5 dataset of the task 
+    "camera_names": ["agentview", "robot0_eye_in_hand"], # the cameras to render in the simulation
+    "demos": [1], # the demos to train on
+    "video_path": "videos/video.mp4", # the file to save the video to
+    "multiplier": 0.01, # this value scales the input commands before they are applied by the controller
+    "states": ["robot0_eef_pos", "robot0_eef_quat", "robot0_eef_vel_ang", "robot0_eef_vel_lin", "robot0_gripper_qpos"],
+    "waypoints_dataset": "AWE_waypoints_dp_err005", # the name of the waypoint dataset in the hdf5 file
+    "subgoals_dataset": "AWE_subgoals_dp_err005", # the name of the subgoal dataset in the hdf5 file
+    "device": "cpu", # or cuda, or mps
+    "plot": false, # whether to plot the trajectory
+    "playback": true, # whether to playback the simulation video
+    "video_skip": 5, # this value determines how many actions are skipped before a frame is saved to the video
+    "model_names": ["waypoint-test-snds-subgoal0-21-08-11-50", "waypoint-test-snds-subgoal1-21-08-11-50"], # names of the pretrained models (optional)
+    "model_dir": "res/" # directory of the pretrained models (optional)
+}
 ```
-
-Before running the above, make sure you have Conda installed, or install it from [Anaconda Website](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html).
-
-## Experimenting with SNDS
-
-The [exp](exp/) folder contains most of the experiments and baselines comparisons. To prepare for running experiments, you need to navigate into the folder and use python to launch the file.
-
-```bash
-python3 nnds_training.py -nt snds -ms Sine -sp -nd 5 -ne 10000
+Then, run the python script
+```shell
+python imitate-task.py --config path/to/config/file.json
 ```
-
-The script utilizes the argparse library, so you can easily check the help instructions to understand their functionality and available command-line options using ```--help``` option.
-
-## Experimenting with PLYDS
-
-The [exp](exp/) folder contains most of the experiments and baselines comparisons. To prepare for running experiments, you need to navigate into the folder and grant Unix executable access to all the Python files or use python to launch them:
-
-```bash
-python plyds_learning.py
-```
-
-
 ## Known Issues
 
 * In some cases the training loss doesn't reduce when training the model, but the problem can be resolved by running the code again. We are trying to solve this problem at the moment.

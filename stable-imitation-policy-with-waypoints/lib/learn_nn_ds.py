@@ -29,7 +29,7 @@ class NL_DS(PlanningPolicyInterface):
     """
 
     def __init__(self, network: str = 'nn', data_dim: int = 2, device: str = 'cuda:0', eps: float = 0.01,
-                 alpha: float = 0.01, relaxed: bool = False, goal: np.ndarray = None):
+                 alpha: float = 0.01, relaxed: bool = False, goal: np.ndarray = None, seed: int = None):
         """ Initialize a nonlinear DS estimator.
 
         Note: the 'nn' method is equivalent to using behavioral cloning.
@@ -41,7 +41,6 @@ class NL_DS(PlanningPolicyInterface):
             data_dim (int, optional): Dimension of the input data. Defaults to 2.
             plot_model (bool, optional): Choose to plot or not. Defaults to False.
         """
-
         self.__lpf = None
         self.__data_dim = data_dim
 

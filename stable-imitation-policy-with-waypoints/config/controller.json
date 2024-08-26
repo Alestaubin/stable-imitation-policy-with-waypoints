@@ -13,10 +13,11 @@
     "plot": true,
     "playback": true,
     "video_skip": 5,
-    "model_names": ["waypoint-test-snds-subgoal0-23-08-10-53", "waypoint-test-snds-subgoal1-23-08-10-53"],
-    "model_dir": "res/",
+    "model_names": ["waypoint-test-snds-subgoal0-26-08-11-19", "waypoint-test-snds-subgoal1-26-08-11-19"],
+    "model_dir": null,
     "force_dim": null,
     "force_time_step": null,
     "augment_rate": 5,
-    "augment_std_dev": 0.005
+    "augment_std_dev": 0.01,
+    "seed": 0
 }
