@@ -224,8 +224,11 @@ class NL_DS(PlanningPolicyInterface):
             model_name (str): Name of the model.
             dir (str, optional): Load directory. Defaults to '../res'.
         """
-
-        self.__nn_module = torch.load(os.path.join(dir, f'{self.__network_type}',
+        if self.__network_type == 'sdsef': # TODO: Bug in sds-ef saving process
+            self.__nn_module.load_state_dict(torch.load(os.path.join(dir, f'{self.__network_type}', f'{model_name}.pt')))
+            self.__nn_module.eval()
+        else:
+            self.__nn_module = torch.load(os.path.join(dir, f'{self.__network_type}',
                                                    f'{model_name}.pt'))
 
 
@@ -238,10 +241,10 @@ class NL_DS(PlanningPolicyInterface):
         """
 
         if self.__network_type == 'sdsef': # TODO: Bug in sds-ef saving process
-            return
-
-        os.makedirs(os.path.join(dir, f'{self.__network_type}'), exist_ok=True)
-        torch.save(self.__nn_module, os.path.join(dir, f'{self.__network_type}',
+            torch.save(self.__nn_module.state_dict(), os.path.join(dir, f'{self.__network_type}',f'{model_name}.pt'))
+        else:
+            os.makedirs(os.path.join(dir, f'{self.__network_type}'), exist_ok=True)
+            torch.save(self.__nn_module, os.path.join(dir, f'{self.__network_type}',
                                                   f'{model_name}.pt'))
 
 

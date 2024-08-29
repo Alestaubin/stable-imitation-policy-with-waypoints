@@ -95,7 +95,7 @@ def playback_dataset(
 
     for i in range(len(subgoals)):
         prev_distance = 0
-        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.008 and action_num < 5000:
+        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.005 and action_num < 5000:
             current_pos = obs["robot0_eef_pos"]
             subgoal_pos = subgoals[i]["subgoal_pos"]
             distance = round(math.dist(subgoal_pos, current_pos), 5)
@@ -107,10 +107,13 @@ def playback_dataset(
             action_gripper = np.array([0])  # NOTE: gripper action is 0 for now
             action = np.concatenate((next_ee_pos, action_ori, action_gripper))
 
-            if abs(prev_distance - distance)< 0.001: # if the distance is not changing, arm is stuck: multiply the action  
-                action = multiplier*np.array(action, copy=True)
+            if distance < 0.035: # if the distance is small, switch controller
+                logger.info("Switching controller")
+                next_ee_pos = (subgoals[i]["subgoal_pos"] - obs["robot0_eef_pos"])/distance * 0.1
+                action = np.concatenate((next_ee_pos, action_ori, action_gripper))
             else:
                 action = np.array(action, copy=True)
+
             if action_num % 25 == 0:
                 prev_distance = distance
                 print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}{str(0)*(7-len(str(distance)))}, Action: {action},Action number: {str(0)*(6-len(str(action_num)))}{action_num}")

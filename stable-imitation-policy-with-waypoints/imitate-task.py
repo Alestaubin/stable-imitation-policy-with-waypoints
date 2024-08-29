@@ -21,6 +21,7 @@ from lib.utils.utils import time_stamp
 from lib.utils.log_config import logger
 from lib.utils.plot_tools import plot_ds_2Dstream, plot_trajectory, plot_contours
 from lib.utils.data_loader import load_hdf5_data
+from lib.utils.waypoint_utils import scatter_waypoints, normalize_waypoints, augment_data, plot_rollouts
 
 from sim.playback_robomimic import playback_dataset
 
@@ -36,27 +37,30 @@ def waypoint_policy(learner_type: str,
                     device: str = 'cuda:0' if torch.cuda.is_available() else 'cpu',
                     subgoal: Optional[int] = None,
                     augment_rate: Optional[int] = None,
-                    augment_std_dev: Optional[float] = None) :
+                    augment_alpha: Optional[float] = None,
+                    augment_distribution: Optional[str] = 'normal',
+                    normalize_magnitude: Optional[float] = None) :
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
     name = f'{model_name}-{learner_type}-subgoal{subgoal}-{time_stamp()}'
     goal = waypoint_positions[-1].reshape(1, waypoint_positions.shape[1])
-    # set goal velocity to zero
-    # waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
-    print(f'GOAL: {goal}')
 
+    # set goal velocity to zero
+    waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
+    logger.info(f'Subgoal position: {goal}')
+    # Maybe normalize the data
+    if normalize_magnitude is not None:
+        waypoint_velocities = normalize_waypoints(waypoint_velocities, normalize_magnitude)
+    
+    # Plot the waypoints
     scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Waypoints')
     # Maybe augment the data
-    if augment_rate is not None and augment_std_dev is not None:   
-        logger.info(f'Augmenting data with rate {augment_rate} and std dev {augment_std_dev}.')
-        waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, augment_std_dev, augment_rate)
+    if augment_rate is not None and augment_alpha is not None:   
+        logger.info(f'Augmenting data with rate {augment_rate} and alpha {augment_alpha} according to a {augment_distribution} distribution.')
+        waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, augment_alpha, augment_rate, augment_distribution)
         scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Augmented Waypoints')
 
-    '''
-    if subgoal==1: 
-        waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, 0.01, 5)
-    '''
     if learner_type in ["snds", "nn", "sdsef", "lnet"]: 
         model = NL_DS(network=learner_type, data_dim=waypoint_positions.shape[1], goal=goal, device=device,
                       eps=0.2, alpha=0.1)
@@ -71,103 +75,9 @@ def waypoint_policy(learner_type: str,
             plot_contours(model.lpf, waypoint_positions, save_dir=save_dir, file_name=f'{name}-lpf')
 
     model.save(model_name=name, dir=save_dir)
+    #torch.save(model, os.path.join(save_dir, name+".pt"))
     print(f'Model saved as {name} in {save_dir}.')
     return model
-
-def plot_rollouts(data, policies):
-    for i, ds_policy in enumerate(policies):
-        waypoint_position = data["subgoal_" + str(i)]["waypoint_position"]
-        if waypoint_position.shape[1] == 3:
-            dt = 0.01
-            start_point = waypoint_position[0].reshape(1, waypoint_position.shape[1])
-            goal_point = waypoint_position[-1].reshape(1, waypoint_position.shape[1])
-
-            rollout = [start_point]
-            distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
-            while distance_to_target > 0.01 and len(rollout) < 5e3:
-                vel = ds_policy.predict(rollout[-1])
-
-                if not isinstance(dt, np.ndarray):
-                    dt = np.array(dt, dtype=np.float32)
-                if not isinstance(vel, np.ndarray):
-                    vel = np.array(vel, dtype=np.float32)
-
-                rollout.append(rollout[-1] + dt * vel)
-                distance_to_target = np.linalg.norm(rollout[-1] - goal_point)
-
-            rollout = np.array(rollout).squeeze()
-            print(f'Rollout finished with distance to target: {distance_to_target}')
-
-            x, y, z = waypoint_position[:, 0], waypoint_position[:, 1], waypoint_position[:, 2]
-            x_rollout, y_rollout, z_rollout = rollout[:, 0], rollout[:, 1], rollout[:, 2]
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.plot(x, y, z, c='b', label='waypoints')
-            ax.plot(x_rollout, y_rollout, z_rollout, c='r', label='rollout')
-            ax.set_xlabel('X1')
-            ax.set_ylabel('X2')
-            ax.set_zlabel('X3')
-            ax.legend()
-            ax.set_title('DS Policy Waypoints')
-            fig.savefig(f'yo-waypoints-policy-subgoal-{i}.png')
-
-            fig2, axes = plt.subplots(1, 3, figsize=(15, 5))
-
-            # X-Y projection
-            axes[0].plot(x, y, 'b', label='waypoints')
-            axes[0].plot(x_rollout, y_rollout, 'r', label='rollout')
-            axes[0].set_xlabel('X1')
-            axes[0].set_ylabel('X2')
-            axes[0].set_title('X-Y Projection')
-            axes[0].legend()
-
-            # X-Z projection
-            axes[1].plot(x, z, 'b', label='waypoints')
-            axes[1].plot(x_rollout, z_rollout, 'r', label='rollout')
-            axes[1].set_xlabel('X1')
-            axes[1].set_ylabel('X3')
-            axes[1].set_title('X-Z Projection')
-            axes[1].legend()
-
-            # Y-Z projection
-            axes[2].plot(y, z, 'b', label='waypoints')
-            axes[2].plot(y_rollout, z_rollout, 'r', label='rollout')
-            axes[2].set_xlabel('X2')
-            axes[2].set_ylabel('X3')
-            axes[2].set_title('Y-Z Projection')
-            axes[2].legend()
-
-            plt.suptitle('2D Projections of the 3D Plot')
-
-            fig2.savefig(f'waypoints-projection-policy-subgoal-{i}.png')
-        
-
-def scatter_waypoints(waypoint_position, waypoint_velocity, title):
-    x, y, z = waypoint_position[:, 0], waypoint_position[:, 1], waypoint_position[:, 2]
-    u, v, w = 0.1*waypoint_velocity[:, 0], 0.1*waypoint_velocity[:, 1], 0.1*waypoint_velocity[:, 2]
-
-    # Create a 3D plot
-    fig = plt.figure(figsize=(12, 10))
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Plot positions
-    ax.scatter(x, y, z, color='blue', label='Positions')
-
-    # Plot velocity vectors (arrows)
-    ax.quiver(x, y, z, u, v, w, color='red', label='Velocities')
-
-    # Labels and legend
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.legend()
-
-    ax.set_title(title)
-
-    # save the plot
-    fig.savefig(f'{title.replace(" ", "-")}.png')
-
-
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_position = subgoal_data["waypoint_position"]
@@ -182,37 +92,12 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         device=config['device'],
         subgoal=subgoal_index,
         augment_rate=config['augment_rate'],
-        augment_std_dev=config['augment_std_dev'],
+        augment_alpha=config['augment_alpha'],
+        augment_distribution=config['augment_distribution'],
+        normalize_magnitude=config['normalize_magnitude'],
     )
+
     print(f"Subgoal {subgoal_index} training complete.")
-
-def augment_data(waypoint_positions, waypoint_velocities, augment_std_dev=0.01, augment_rate=5):
-    """Augment the data by adding Gaussian noise to the waypoints."""
-
-    new_positions = []
-    new_velocities = []
-
-    for i in range(len(waypoint_positions)):
-        # for each original point, generate augment_rate new points
-        for _ in range(augment_rate):
-            noise = np.random.normal(0, augment_std_dev, waypoint_positions[i].shape)
-            new_position = waypoint_positions[i] + noise
-            new_positions.append(new_position)
-            new_velocities.append(waypoint_velocities[i])
-
-    # Convert to numpy arrays
-    new_positions = np.array(new_positions)
-    new_velocities = np.array(new_velocities)
-
-    # Combine with the original data 
-    augmented_positions = np.vstack((waypoint_positions, new_positions))
-    augmented_velocities = np.vstack((waypoint_velocities, new_velocities))
-    '''    
-    for i in range(len(augmented_positions)):
-        print(f"Augmented position {i}: {augmented_positions[i]}, Augmented velocity {i}: {augmented_velocities[i]}")
-    '''    
-    return augmented_positions, augmented_velocities
-
 
 def main(config_path):
     with open(config_path, 'r') as file:
@@ -252,7 +137,7 @@ def main(config_path):
     if config['model_names'] is None or config['model_dir'] is None:
         # Use multiprocessing to train a policy for each subgoal
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
-
+        
         ps = []
 
         # Create and start processes
@@ -264,9 +149,10 @@ def main(config_path):
             p.start()
             ps.append(p)
 
-        # Wait for all processes to finish with a timeout
+        # Wait for all processes to finish 
         for p in ps:
             p.join(timeout=120)  # Add a timeout to avoid indefinite hanging
+        
         return
     else:
         policies = []
