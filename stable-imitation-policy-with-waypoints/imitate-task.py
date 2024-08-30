@@ -21,7 +21,7 @@ from lib.utils.utils import time_stamp
 from lib.utils.log_config import logger
 from lib.utils.plot_tools import plot_ds_2Dstream, plot_trajectory, plot_contours
 from lib.utils.data_loader import load_hdf5_data
-from lib.utils.waypoint_utils import scatter_waypoints, normalize_waypoints, augment_data, plot_rollouts
+from lib.utils.waypoint_utils import scatter_waypoints, normalize_waypoints, augment_data, plot_rollouts, clean_waypoints
 
 from sim.playback_robomimic import playback_dataset
 
@@ -39,7 +39,8 @@ def waypoint_policy(learner_type: str,
                     augment_rate: Optional[int] = None,
                     augment_alpha: Optional[float] = None,
                     augment_distribution: Optional[str] = 'normal',
-                    normalize_magnitude: Optional[float] = None) :
+                    normalize_magnitude: Optional[float] = None,
+                    clean: Optional[bool] = False) :
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
@@ -55,6 +56,12 @@ def waypoint_policy(learner_type: str,
     
     # Plot the waypoints
     scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Waypoints')
+    
+    # Maybe clean the data 
+    if clean:
+        waypoint_positions, waypoint_velocities = clean_waypoints(waypoint_positions, waypoint_velocities)
+        scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Cleaned Waypoints')
+    
     # Maybe augment the data
     if augment_rate is not None and augment_alpha is not None:   
         logger.info(f'Augmenting data with rate {augment_rate} and alpha {augment_alpha} according to a {augment_distribution} distribution.')
@@ -95,6 +102,7 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         augment_alpha=config['augment_alpha'],
         augment_distribution=config['augment_distribution'],
         normalize_magnitude=config['normalize_magnitude'],
+        clean=config['clean'],
     )
 
     print(f"Subgoal {subgoal_index} training complete.")
@@ -164,9 +172,12 @@ def main(config_path):
             # Load the model
             model.load(model_name=model_name, dir=config["model_dir"])
             policies.append(model)
+    
     # maybe plot the rollouts 
     if config['plot']:
         plot_rollouts(data, policies)
+
+    # maybe playback the rollout in the simulation
     if config['playback']:
         print("Starting playback...")
         playback_dataset(

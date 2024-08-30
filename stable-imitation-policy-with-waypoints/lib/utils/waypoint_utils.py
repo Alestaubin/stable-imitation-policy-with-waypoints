@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from lib.utils.log_config import logger
 
 def scatter_waypoints(waypoint_position, waypoint_velocity, title):
     """
@@ -28,7 +27,7 @@ def scatter_waypoints(waypoint_position, waypoint_velocity, title):
     ax.set_title(title)
 
     # save the plot
-    fig.savefig(f'plots/{title.replace(" ", "-")}.png')
+    fig.savefig(f'plots/waypoints/{title.replace(" ", "-")}.png')
 
 def plot_rollouts(data, policies):
     for i, ds_policy in enumerate(policies):
@@ -100,7 +99,7 @@ def normalize_waypoints(waypoint_velocity, magnitude):
     """
     A function that normalizes the waypoint velocities.
     """
-    logger.info("Normalizing waypoint velocities...")
+    print("Normalizing waypoint velocities...")
     # set the last waypoint velocity to zero
     waypoint_velocity[-1] = np.zeros_like(waypoint_velocity[-1])
 
@@ -112,7 +111,7 @@ def normalize_waypoints(waypoint_velocity, magnitude):
         else:
             normalized_velocity = np.zeros_like(waypoint_velocity[i])  # Handle zero vector case
         waypoint_velocity[i] = normalized_velocity
-    logger.info("Normalized waypoint velocities: \n{}".format(waypoint_velocity))
+    print("Normalized waypoint velocities: \n{}".format(waypoint_velocity))
     return waypoint_velocity
 
 def augment_data(waypoint_positions, waypoint_velocities, alpha=0.01, augment_rate=5, distribution='normal'):
@@ -149,3 +148,42 @@ def augment_data(waypoint_positions, waypoint_velocities, alpha=0.01, augment_ra
 
     print(f"augmented_velocities: {augmented_velocities}") 
     return augmented_positions, augmented_velocities
+
+def clean_waypoints(waypoint_positions, waypoint_velocities):
+    """
+    A function that removes any ood waypoints.
+    """
+    for i in range(1, len(waypoint_positions)-2): # last waypoint has zero velocity, 
+        # if adjacent waypoints have velocity vectors that are too different, check which one is the outlier
+        # compare angle between vectors
+        if angle_between(waypoint_velocities[i], waypoint_velocities[i+1]) > np.pi/2 and angle_between(waypoint_velocities[i], waypoint_velocities[i-1])  > np.pi/2:
+            waypoint_positions = np.delete(waypoint_positions, i, axis=0)
+            waypoint_velocities = np.delete(waypoint_velocities, i, axis=0)
+    
+    #check first and second to last waypoint 
+    if angle_between(waypoint_velocities[0], waypoint_velocities[1]) > np.pi/2:
+        waypoint_positions = np.delete(waypoint_positions, 0, axis=0)
+        waypoint_velocities = np.delete(waypoint_velocities, 0, axis=0)
+    if angle_between(waypoint_velocities[-2], waypoint_velocities[-1]) > np.pi/2:
+        waypoint_positions = np.delete(waypoint_positions, -1, axis=0)
+        waypoint_velocities = np.delete(waypoint_velocities, -1, axis=0)
+    
+    return waypoint_positions, waypoint_velocities
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))

@@ -11,6 +11,7 @@ import math
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 from lib.utils.log_config import logger
+import cv2
 
 def get_next_ee_pos (policy, current_ee_pos):
     #convert to np array
@@ -95,7 +96,7 @@ def playback_dataset(
 
     for i in range(len(subgoals)):
         prev_distance = 0
-        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.005 and action_num < 5000:
+        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.008 and action_num < 5000:
             current_pos = obs["robot0_eef_pos"]
             subgoal_pos = subgoals[i]["subgoal_pos"]
             distance = round(math.dist(subgoal_pos, current_pos), 5)
@@ -107,12 +108,13 @@ def playback_dataset(
             action_gripper = np.array([0])  # NOTE: gripper action is 0 for now
             action = np.concatenate((next_ee_pos, action_ori, action_gripper))
 
-            if distance < 0.035: # if the distance is small, switch controller
+            """if distance < 0.035: # if the distance is small, switch controller
                 logger.info("Switching controller")
                 next_ee_pos = (subgoals[i]["subgoal_pos"] - obs["robot0_eef_pos"])/distance * 0.1
                 action = np.concatenate((next_ee_pos, action_ori, action_gripper))
-            else:
-                action = np.array(action, copy=True)
+            else:"""
+            
+            action = np.array(action, copy=True)
 
             if action_num % 25 == 0:
                 prev_distance = distance
@@ -126,37 +128,27 @@ def playback_dataset(
             if action_num % video_skip == 0:
                 video_img = []
                 for cam_name in camera_names:
-                    video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
+                    video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Subgoal {i}"))
                 video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
                 video_writer.append_data(video_img)
-            
+        
             action_num += 1
             
-            # maybe apply external force to arm
-            if apply_force and action_num == force_time_step:
-                print("Applying external force to arm")
-                force_dim = np.array(force_dim)  # Example force vector in the x direction
-                body_id = env.env.sim.model.body_name2id('robot0_link7')  # Replace with the appropriate body name
-                env.env.sim.data.xfrc_applied[body_id, :3] = force_dim
-                obs, _, _, _ = env.step(action)
-                env.env.sim.data.xfrc_applied[body_id, :3] = np.zeros(3)
-                video_img = []
-                for cam_name in camera_names:
-                    video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
-                video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
-                video_writer.append_data(video_img)
+            # maybe apply external force to arm                
 
         # Activate the gripper
         # NOTE : This is a temporary solution. There should be a check that the object has been grasped 
         action_gripper = subgoals[i]["subgoal_gripper"]
+        action = np.zeros_like(action)
         action[-1] = action_gripper
+        logger.info("\n####################################################\n################ Activating gripper ################\n####################################################")
         # do while loop
         while True:
-            print(f'Activating gripper: {action}, Gripper qpos: {obs["robot0_gripper_qpos"]}, Gripper qvel: {obs["robot0_gripper_qvel"]}')
+            #print(f'Activating gripper: {action}, Gripper qpos: {obs["robot0_gripper_qpos"]}, Gripper qvel: {obs["robot0_gripper_qvel"]}')
             obs, _, _, _ = env.step(action)
             video_img = []
             for cam_name in camera_names:
-                video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
+                video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Subgoal {i}"))
             video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
             video_writer.append_data(video_img)
             action_num += 1
@@ -172,3 +164,21 @@ def playback_dataset(
     # Close video writer
     video_writer.close()
 
+def put_text(img, text, font_size=1, thickness=2, position="top"):
+    img = img.copy()
+    if position == "top":
+        p = (10, 30)
+    elif position == "bottom":
+        p = (10, img.shape[0] - 60)
+    # put the frame number in the top left corner
+    img = cv2.putText(
+        img,
+        str(text),
+        p,
+        cv2.FONT_HERSHEY_SIMPLEX,
+        font_size,
+        (0, 255, 255),
+        thickness,
+        cv2.LINE_AA,
+    )
+    return img

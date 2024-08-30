@@ -1,4 +1,9 @@
-""" Automatic waypoint selection """
+""" 
+Automatic waypoint selection
+
+Example usage:
+python waypoint_extraction.py --dataset "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local.hdf5" -n "AWE_waypoints_0025" --end_idx 49 -e 0.0025
+"""
 
 import h5py
 import argparse
@@ -226,8 +231,8 @@ def dp_waypoint_selection(
 
 def subgoal_selection(dataset_path, start_idx, end_idx, waypoints_dataset_name):
     with h5py.File(dataset_path, "a") as f:
-
-        for i in range(start_idx, end_idx):
+        i = start_idx
+        while i <= end_idx:
             logger.info(f"Processing episode {i}")
             if f"data/demo_{i}" in f:
                 try:
@@ -246,23 +251,22 @@ def subgoal_selection(dataset_path, start_idx, end_idx, waypoints_dataset_name):
                 subgoals = [] 
                 prev_gripper_action = waypoint_abs_actions[0][-1] 
                 for j,action in enumerate(waypoint_abs_actions):
-                    if abs(j - len(waypoint_abs_actions)) < 5:
-                        break # don't check the last few actions
-                    elif action[-1] != prev_gripper_action:
+                    if action[-1] != prev_gripper_action:
                         subgoals.append(waypoint_indices[j])
                         prev_gripper_action = action[-1]
 
                 subgoals.append(waypoint_indices[-1]) # last waypoint must be a subgoal 
                 logger.info(f"Subgoals for demo_{i}: {subgoals}")
-                
                 # save the subgoals
                 subgoals_dataset_name = str.replace(waypoints_dataset_name, "waypoints", "subgoals")
                 if f"data/demo_{i}/{subgoals_dataset_name}" in f:
-                    logger.info("Deleting existing dataset ", f"data/demo_{i}/{subgoals_dataset_name}")
+                    logger.info(f"Deleting existing dataset: data/demo_{i}/{subgoals_dataset_name}")
                     del f[f"data/demo_{i}/{subgoals_dataset_name}"]
                 f.create_dataset(f"data/demo_{i}/{subgoals_dataset_name}", data=subgoals)
             else:
                 logger.info(f"demo_{i} not found in the dataset.")
+            
+            i += 1
 
 def main(args):
 
@@ -320,7 +324,7 @@ def main(args):
 
         # save waypoints
         if f"data/{ep}/{args.group_name}" in f:
-            logger.info("Deleting existing dataset ", f"data/{ep}/{args.group_name}")
+            logger.info(f"Deleting existing dataset: data/{ep}/{args.group_name}")
             del f[f"data/{ep}/{args.group_name}"]
         
         f.create_dataset(f"data/{ep}/{args.group_name}", data=waypoints)
@@ -339,10 +343,11 @@ if __name__ == "__main__":
         help="path to hdf5 dataset",
     )
     parser.add_argument(
+        '-n',
         "--group_name",
         type=str,
         default="data",
-        help="name of the group in the hdf5 file to save to",
+        help="name of the group in the hdf5 file to save the waypoints to",
     )
 
     # index of the trajectory to playback. If omitted, playback trajectory 0.
@@ -370,6 +375,7 @@ if __name__ == "__main__":
 
     # error threshold for reconstructing the trajectory
     parser.add_argument(
+        "-e",
         "--err_threshold",
         type=float,
         default=0.01,
