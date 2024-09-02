@@ -80,6 +80,8 @@ class PosDefICNN(nn.Module):
             nn.init.kaiming_uniform_(W, a=5**0.5)
         for U in self.U:
             nn.init.kaiming_uniform_(U, a=5**0.5)
+        for b in self.bias:
+            nn.init.zeros_(b)
 
     def forward(self, x):
         z = F.linear((x - self.goal), self.W[0], self.bias[0])
