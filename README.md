@@ -14,7 +14,6 @@ Conference on Robot Learning, 2023.
 ## Installation 
 First, clone this repository on your device.
 ```
-git clone https://github.com/Alestaubin/stable-imitation-policy-with-waypoints.git
 cd stable-imitation-policy-with-waypoints
 ```
 
@@ -105,31 +104,79 @@ To acquire a better understanding of the environment and features, you just need
 │   └── videos/
 └── stable_imitation_policy_with_waypoints.egg-info
 ```
+## Data Preprocessing
+The model takes as input a panda arm task in the form of a hdf5 file. These tasks can be obtained from [Libero](https://libero-project.github.io/main.html). The original file must first be preprocessed before it is given as input to the model.
+
+1. Download the dataset and move it to the data folder
+```
+cd data
+mkdir name_of_task
+cd path/to/task_dataset
+mv task_dataset path/to/data/name_of_task.hdf5
+```
+2. Preprocess raw data and extract images
+```
+python lib/data_processing/preprocess_hdf5.py -i ./data/name_of_task/task_dataset.hdf5 -o ./data/name_of_task/demo_modified.hdf5
+
+python lib/data_processing/dataset_states_to_obs.py --dataset './data/name_of_task/demo_modified.hdf5' --done_mode 0 --camera_names agentview robot0_eye_in_hand --camera_height 84 --camera_width 84 --output_name image_demo_local.hdf5 --exclude-next-obs
+```
+3. Extract end-effector trajectory for training
+```
+python lib/data_processing/dataset_extract_traj_plans.py --dataset 'data/name_of_task/image_demo_local.hdf5'
+```
+4. Convert delta actions to absolute actions for waypoint extraction
+```
+python lib/data_processing/robomimic_convert_action.py --dataset 'data/name_of_task/image_demo_local.hdf5'
+```
+5. Extract waypoints using [AWE](https://lucys0.github.io/awe/).
+```
+python lib/utils/waypoint_extraction.py --dataset 'data/name_of_task/image_demo_local.hdf5' --group_name 'AWE_waypoints_0025' --start_idx 0 --end_idx 49 --err_threshold 0.0025
+```
+
 ## Training
 
 ### config file
 Create a config file with the following structure: 
 ```json
 {
-    "learner_type": "snds", # the policy to train
-    "num_epochs": 10000, # the max number of epochs
-    "data_dir": "data/dataset.hdf5", # the path to the hdf5 dataset of the task 
-    "camera_names": ["agentview", "robot0_eye_in_hand"], # the cameras to render in the simulation
-    "demos": [1], # the demos to train on
-    "video_path": "videos/video.mp4", # the file to save the video to
-    "multiplier": 0.01, # this value scales the input commands before they are applied by the controller
-    "states": ["robot0_eef_pos", "robot0_eef_quat", "robot0_eef_vel_ang", "robot0_eef_vel_lin", "robot0_gripper_qpos"],
-    "waypoints_dataset": "AWE_waypoints_dp_err005", # the name of the waypoint dataset in the hdf5 file
-    "subgoals_dataset": "AWE_subgoals_dp_err005", # the name of the subgoal dataset in the hdf5 file
-    "device": "cpu", # or cuda, or mps
-    "plot": false, # whether to plot the trajectory
-    "playback": true, # whether to playback the simulation video
-    "video_skip": 5, # this value determines how many actions are skipped before a frame is saved to the video
-    "model_names": ["waypoint-test-snds-subgoal0-21-08-11-50", "waypoint-test-snds-subgoal1-21-08-11-50"], # names of the pretrained models (optional)
-    "model_dir": "res/" # directory of the pretrained models (optional)
-}
+    "training":{
+        "learner_type": "snds",
+        "num_epochs": 5000,
+        "demos": [34],
+        "device": "cpu"
+    },
+    "data":{
+        "model_names": ["segment0_model_name", "segment1_model_name", "segment2_model_name"],
+        "model_dir": "res/",
+        "waypoints_dataset": "AWE_waypoints_0025",
+        "subgoals_dataset": "AWE_subgoals_0025",
+        "data_dir": "path/to/data/name_of_task/image_demo_local.hdf5"
+    },
+    "simulation":{
+        "playback": true,
+        "plot": true,
+        "video_skip": 5,
+        "multiplier": 1,
+        "video_name": "a_very_cool_video.mp4",
+        "camera_names": ["agentview", "robot0_eye_in_hand"]
+    },
+    "data_processing":{
+        "augment_rate": 4,
+        "augment_alpha": 0.0025,
+        "augment_distribution": "uniform",
+        "normalize_magnitude": 0.25,
+        "clean": true
+    },
+    "snds":{
+        "fhat_layers": [256, 256, 256],
+        "lpf_layers": [64, 64],
+        "eps": 0.02,
+        "alpha": 0.01,
+        "relaxed": true
+    }
+} 
 ```
-Then, run the python script
+Then, run the training script
 ```shell
 python imitate-task.py --config path/to/config/file.json
 ```
