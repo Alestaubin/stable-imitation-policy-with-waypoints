@@ -207,7 +207,7 @@ def main(config_path):
         with open(os.path.join(video_path, 'info.txt'), 'w') as f:
             f.write(f"{config}")
 
-        path = playback_dataset(
+        playback_dataset(
             dataset_path=config["data"]['data_dir'],
             video_name=video_full_name,
             camera_names=config["simulation"]['camera_names'],
@@ -218,8 +218,7 @@ def main(config_path):
                        "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
             multiplier=config["simulation"]['multiplier']
         )
-        logger.info(f"Playback complete. Video saved to {path}/{config['simulation']['video_name']}.")
-        
+        logger.info(f"Playback complete. Video saved to {video_full_name}")
         
 
     logger.info("Process complete.")

@@ -1,13 +1,13 @@
 {
     "training":{
         "learner_type": "snds",
-        "num_epochs": 40000,
+        "num_epochs": 5000,
         "demos": [34],
-        "device": "mps"
+        "device": "cpu"
     },
     "data":{
-        "model_names": ["waypoint-test-snds-subgoal0-02-09-16-47", "waypoint-test-snds-subgoal1-02-09-16-47", "waypoint-test-snds-subgoal2-02-09-16-47"],
-        "model_dir": null,
+        "model_names": ["waypoint-test-snds-subgoal0-03-09-09-05", "waypoint-test-snds-subgoal1-03-09-09-05", "waypoint-test-snds-subgoal2-03-09-09-05"],
+        "model_dir": "res/",
         "waypoints_dataset": "AWE_waypoints_0025",
         "subgoals_dataset": "AWE_subgoals_0025",
         "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local.hdf5"
@@ -22,16 +22,16 @@
     },
     "data_processing":{
         "augment_rate": 4,
-        "augment_alpha": 0.001,
+        "augment_alpha": 0.0025,
         "augment_distribution": "uniform",
         "normalize_magnitude": 0.25,
         "clean": true
     },
     "snds":{
-        "fhat_layers": [128, 128],
-        "lpf_layers": [32, 32],
+        "fhat_layers": [256, 256, 256],
+        "lpf_layers": [64, 64],
         "eps": 0.02,
         "alpha": 0.01,
-        "relaxed": false
+        "relaxed": true
     }
 } 

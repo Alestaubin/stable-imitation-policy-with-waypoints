@@ -161,7 +161,6 @@ def playback_dataset(
 
     # Close video writer
     video_writer.close()
-    return video_path
 
 def put_text(img, text, font_size=1, thickness=2, position="top"):
     img = img.copy()
