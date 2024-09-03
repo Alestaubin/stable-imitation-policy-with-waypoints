@@ -10,6 +10,8 @@ import torch.nn.functional as F
 
 from torch import nn
 from typing import List
+from lib.utils.log_config import logger
+
 
 
 class NormalNN(nn.Module):
@@ -139,8 +141,8 @@ class Dynamics(nn.Module):
         return rv
 
 
-def init_snds_model(device, lsd=2, fhat_layers=[256, 256, 256], lpf_layers=[64, 64], eps: float = 0.01,
-                       alpha: float = 0.01, relaxed: bool = False, goal: torch.Tensor = None):
+def init_snds_model(device, lsd=2, fhat_layers=[64, 64], lpf_layers=[16, 16], eps: float = 0.01, # increas eps: increase stability, but maybe decrease accuracy, i.e. enforces stronger safety certificate
+                       alpha: float = 0.01, relaxed: bool = False, goal: torch.Tensor = None): # alpha only works is relaxed is False, the higher alpha the faster the convergence. relaxed is True: replaces expontential stability with asymptotic stability, i.e. stability is not enforced as much
     """ Unified model of stable dynamical system, ready to train.
 
     Args:
@@ -150,10 +152,10 @@ def init_snds_model(device, lsd=2, fhat_layers=[256, 256, 256], lpf_layers=[64, 
     Returns:
         Callable: DS and safety certificate
     """
-
+    logger.info(f"Initializing the SNDs model with configuration:\n fhat_layers: {fhat_layers}, lpf_layers: {lpf_layers}, eps: {eps}, alpha: {alpha}, relaxed: {relaxed}")
     # add input and output dims
     fhat_layers = [lsd]+ fhat_layers + [lsd]
-    lpf_layers = [lsd] + lpf_layers + [1]
+    lpf_layers = [lsd] + lpf_layers + [1] 
 
     # dynamics function to learn
     fhat = Calibrate(NormalNN(layer_sizes=fhat_layers, goal=goal), goal=goal)

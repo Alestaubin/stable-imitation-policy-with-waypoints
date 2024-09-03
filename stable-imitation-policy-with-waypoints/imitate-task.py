@@ -40,7 +40,12 @@ def waypoint_policy(learner_type: str,
                     augment_alpha: Optional[float] = None,
                     augment_distribution: Optional[str] = 'normal',
                     normalize_magnitude: Optional[float] = None,
-                    clean: Optional[bool] = False) :
+                    clean: Optional[bool] = False,
+                    fhat_layers: Optional[List[int]] = [64, 64],
+                    lpf_layers: Optional[List[int]] = [16, 16],
+                    eps: Optional[float] = 0.01,
+                    alpha: Optional[float] = 0.01,
+                    relaxed: Optional[bool] = False) :
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
@@ -49,7 +54,7 @@ def waypoint_policy(learner_type: str,
 
     # set goal velocity to zero
     waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
-    logger.info(f'Subgoal position: {goal}')
+    
     # Maybe normalize the data
     if normalize_magnitude is not None:
         waypoint_velocities = normalize_waypoints(waypoint_velocities, normalize_magnitude)
@@ -69,8 +74,15 @@ def waypoint_policy(learner_type: str,
         scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Augmented Waypoints')
 
     if learner_type in ["snds", "nn", "sdsef", "lnet"]: 
-        model = NL_DS(network=learner_type, data_dim=waypoint_positions.shape[1], goal=goal, device=device,
-                      eps=0.2, alpha=0.1)
+        model = NL_DS(network=learner_type, 
+                      data_dim=waypoint_positions.shape[1], 
+                      goal=goal, 
+                      device=device, 
+                      eps=eps, 
+                      alpha=alpha, 
+                      relaxed=relaxed, 
+                      fhat_layers=fhat_layers, 
+                      lpf_layers=lpf_layers)
         model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs, lr_initial=1e-4)
     else:
         raise NotImplementedError(f'Learner type {learner_type} not available!')
@@ -83,66 +95,61 @@ def waypoint_policy(learner_type: str,
 
     model.save(model_name=name, dir=save_dir)
     #torch.save(model, os.path.join(save_dir, name+".pt"))
-    print(f'Model saved as {name} in {save_dir}.')
+    logger.info(f'Model saved as {name} in {save_dir}.')
     return model
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_position = subgoal_data["waypoint_position"]
     waypoint_velocity = subgoal_data["waypoint_velocity"]
-    print(f"Subgoal {subgoal_index} waypoint positions: {waypoint_position}")
-    print(f"Subgoal {subgoal_index} waypoint velocities: {waypoint_velocity}")
+    #print(f"Subgoal {subgoal_index} waypoint positions: {waypoint_position}")
+    #print(f"Subgoal {subgoal_index} waypoint velocities: {waypoint_velocity}")
     ds_policy = waypoint_policy(
-        config['learner_type'],
+        config['training']['learner_type'],
         waypoint_positions=waypoint_position,
         waypoint_velocities=waypoint_velocity,
-        n_epochs=config['num_epochs'],
-        device=config['device'],
+        n_epochs=config["training"]['num_epochs'],
+        device=config["training"]['device'],
         subgoal=subgoal_index,
-        augment_rate=config['augment_rate'],
-        augment_alpha=config['augment_alpha'],
-        augment_distribution=config['augment_distribution'],
-        normalize_magnitude=config['normalize_magnitude'],
-        clean=config['clean'],
+        augment_rate=config["data_processing"]['augment_rate'],
+        augment_alpha=config["data_processing"]['augment_alpha'],
+        augment_distribution=config["data_processing"]['augment_distribution'],
+        normalize_magnitude=config["data_processing"]['normalize_magnitude'],
+        clean=config["data_processing"]['clean'],
+        fhat_layers=config["snds"]['fhat_layers'],
+        lpf_layers=config["snds"]['lpf_layers'],
+        eps=config["snds"]['eps'],
+        alpha=config["snds"]['alpha'],
+        relaxed=config["snds"]['relaxed']
     )
 
-    print(f"Subgoal {subgoal_index} training complete.")
+    logger.info(f"Subgoal {subgoal_index} training complete.")
 
 def main(config_path):
     with open(config_path, 'r') as file:
         config = json.load(file)
 
-    demos = config['demos']
+    demos = config["training"]['demos']
     data = {}
     demo = demos[0]
 
-    if config['seed'] is not None:
-        print(f"Setting seed to {config['seed']}")
-        seed = config['seed']
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)
-        else:
-            torch.manual_seed(seed)
-    
     # get number of subgoals in the demo
-    with h5py.File(config['data_dir'], 'r') as f: 
+    with h5py.File(config["data"]['data_dir'], 'r') as f: 
         #print(f"data/demo_{demo}/{config['subgoals_dataset']}")
-        subgoals = f[f"data/demo_{demo}/{config['subgoals_dataset']}"]
+        subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
         num_subgoals = len(subgoals)
 
     for i in range(num_subgoals):
         waypoint_position, waypoint_velocity, waypoint_orientation, waypoint_gripper_action = load_hdf5_data(
-            dataset=config['data_dir'],
+            dataset=config["data"]['data_dir'],
             demo_id=demo,
-            waypoints_dataset_name=config['waypoints_dataset'],
-            subgoals_dataset_name=config['subgoals_dataset'],
+            waypoints_dataset_name=config["data"]['waypoints_dataset'],
+            subgoals_dataset_name=config["data"]['subgoals_dataset'],
             subgoal=i
         )
         data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_velocity": waypoint_velocity, "waypoint_orientation": waypoint_orientation, "waypoint_gripper_action": waypoint_gripper_action}
 
-    print(f'Data loaded from {config["data_dir"]}.')
-    if config['model_names'] is None or config['model_dir'] is None:
+    logger.info(f'Data loaded from {config["data"]["data_dir"]}.')
+    if config["data"]['model_names'] is None or config["data"]['model_dir'] is None:
         # Use multiprocessing to train a policy for each subgoal
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
         
@@ -164,36 +171,58 @@ def main(config_path):
         return
     else:
         policies = []
-        for i, model_name in enumerate(config['model_names']):
-            print(f"Loading model {model_name}")
+        for i, model_name in enumerate(config["data"]['model_names']):
+            logger.info(f"Loading model {model_name}")
             waypoint_positions = data["subgoal_"+str(i)]["waypoint_position"]
-            model = NL_DS(network=config['learner_type'], data_dim=waypoint_position.shape[1], goal=waypoint_position[-1].reshape(1, waypoint_positions.shape[1]), device=config['device'],
-                eps=0.2, alpha=0.1)
+            model = NL_DS(
+                network=config["training"]['learner_type'], 
+                data_dim=waypoint_position.shape[1], 
+                goal=waypoint_position[-1].reshape(1, waypoint_positions.shape[1]), 
+                device=config['training']['device'],
+                eps=config["snds"]['eps'], 
+                alpha=config["snds"]['alpha'],
+                relaxed=config["snds"]['relaxed'],
+                fhat_layers=config["snds"]['fhat_layers'],
+                lpf_layers=config["snds"]['lpf_layers']
+                )
             # Load the model
-            model.load(model_name=model_name, dir=config["model_dir"])
+            model.load(model_name=model_name, dir=config["data"]["model_dir"])
             policies.append(model)
     
     # maybe plot the rollouts 
-    if config['plot']:
+    if config["simulation"]['plot']:
         plot_rollouts(data, policies)
 
     # maybe playback the rollout in the simulation
-    if config['playback']:
-        print("Starting playback...")
-        playback_dataset(
-            dataset_path=config['data_dir'],
-            video_path=config['video_path'],
-            camera_names=config['camera_names'],
-            video_skip=config['video_skip'],
+    if config["simulation"]['playback']:
+        logger.info("Starting playback...")
+        folder_name = time_stamp()
+        #create a folder with the current time and date in the videos directory
+        video_path = f"videos/{folder_name}"
+        if not os.path.exists(video_path):
+            os.makedirs(video_path)
+
+        video_full_name = video_path + "/" + config["simulation"]['video_name']
+        # save a file info.txt in the same directory as the video
+        with open(os.path.join(video_path, 'info.txt'), 'w') as f:
+            f.write(f"{config}")
+
+        path = playback_dataset(
+            dataset_path=config["data"]['data_dir'],
+            video_name=video_full_name,
+            camera_names=config["simulation"]['camera_names'],
+            video_skip=config["simulation"]['video_skip'],
             policies=policies,
             subgoals=[{"subgoal_pos": subgoal_data["waypoint_position"][-1],
                        "subgoal_ori": subgoal_data["waypoint_orientation"][-1],
                        "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
-            multiplier=config['multiplier'], 
-            force_dim=config['force_dim'],
-            force_time_step=config['force_time_step']
+            multiplier=config["simulation"]['multiplier']
         )
-    print("Process complete.")
+        logger.info(f"Playback complete. Video saved to {path}/{config['simulation']['video_name']}.")
+        
+        
+
+    logger.info("Process complete.")
 
 
 if __name__ == "__main__":

@@ -1,25 +1,37 @@
 {
-    "learner_type": "snds",
-    "num_epochs": 40000,
-    "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local.hdf5",
-    "camera_names": ["agentview", "robot0_eye_in_hand"],
-    "demos": [34],
-    "video_path": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/videos/put_the_black_bowl_on_the_plate.mp4",
-    "multiplier": 1,
-    "waypoints_dataset": "AWE_waypoints_0025",
-    "subgoals_dataset": "AWE_subgoals_0025",
-    "device": "mps",
-    "plot": true,
-    "playback": true,
-    "video_skip": 5,
-    "model_names": ["waypoint-test-snds-subgoal0-30-08-15-05", "waypoint-test-snds-subgoal1-30-08-15-05", "waypoint-test-snds-subgoal2-30-08-15-05"],
-    "model_dir": "res/",
-    "force_dim": null,
-    "force_time_step": null,
-    "augment_rate": 4,
-    "augment_alpha": 0.001,
-    "augment_distribution": "uniform",
-    "seed": null,
-    "normalize_magnitude": 0.25,
-    "clean": true
-}
+    "training":{
+        "learner_type": "snds",
+        "num_epochs": 40000,
+        "demos": [34],
+        "device": "mps"
+    },
+    "data":{
+        "model_names": ["waypoint-test-snds-subgoal0-02-09-16-47", "waypoint-test-snds-subgoal1-02-09-16-47", "waypoint-test-snds-subgoal2-02-09-16-47"],
+        "model_dir": null,
+        "waypoints_dataset": "AWE_waypoints_0025",
+        "subgoals_dataset": "AWE_subgoals_0025",
+        "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local.hdf5"
+    },
+    "simulation":{
+        "playback": true,
+        "plot": true,
+        "video_skip": 5,
+        "multiplier": 1,
+        "video_name": "put_the_black_bowl_on_the_plate.mp4",
+        "camera_names": ["agentview", "robot0_eye_in_hand"]
+    },
+    "data_processing":{
+        "augment_rate": 4,
+        "augment_alpha": 0.001,
+        "augment_distribution": "uniform",
+        "normalize_magnitude": 0.25,
+        "clean": true
+    },
+    "snds":{
+        "fhat_layers": [128, 128],
+        "lpf_layers": [32, 32],
+        "eps": 0.02,
+        "alpha": 0.01,
+        "relaxed": false
+    }
+} 

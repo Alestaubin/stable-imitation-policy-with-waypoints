@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from lib.utils.log_config import logger
 
 def scatter_waypoints(waypoint_position, waypoint_velocity, title):
     """
@@ -99,7 +100,7 @@ def normalize_waypoints(waypoint_velocity, magnitude):
     """
     A function that normalizes the waypoint velocities.
     """
-    print("Normalizing waypoint velocities...")
+    logger.info("Normalizing waypoint velocities...")
     # set the last waypoint velocity to zero
     waypoint_velocity[-1] = np.zeros_like(waypoint_velocity[-1])
 
@@ -111,7 +112,6 @@ def normalize_waypoints(waypoint_velocity, magnitude):
         else:
             normalized_velocity = np.zeros_like(waypoint_velocity[i])  # Handle zero vector case
         waypoint_velocity[i] = normalized_velocity
-    print("Normalized waypoint velocities: \n{}".format(waypoint_velocity))
     return waypoint_velocity
 
 def augment_data(waypoint_positions, waypoint_velocities, alpha=0.01, augment_rate=5, distribution='normal'):
@@ -146,7 +146,7 @@ def augment_data(waypoint_positions, waypoint_velocities, alpha=0.01, augment_ra
     augmented_positions = np.array(new_positions)
     augmented_velocities = np.array(new_velocities)
 
-    print(f"augmented_velocities: {augmented_velocities}") 
+    #print(f"augmented_velocities: {augmented_velocities}") 
     return augmented_positions, augmented_velocities
 
 def clean_waypoints(waypoint_positions, waypoint_velocities):

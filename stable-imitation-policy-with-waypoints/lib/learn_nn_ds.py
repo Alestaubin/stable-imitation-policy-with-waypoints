@@ -28,8 +28,16 @@ class NL_DS(PlanningPolicyInterface):
     networks sounds like a plausible option for estimating nonlinear DS.
     """
 
-    def __init__(self, network: str = 'nn', data_dim: int = 2, device: str = 'cuda:0', eps: float = 0.01,
-                 alpha: float = 0.01, relaxed: bool = False, goal: np.ndarray = None, seed: int = None):
+    def __init__(self, 
+                 network: str = 'nn', 
+                 data_dim: int = 2, 
+                 device: str = 'cuda:0', 
+                 eps: float = 0.01,
+                 alpha: float = 0.01, 
+                 relaxed: bool = False, 
+                 goal: np.ndarray = None, 
+                 fhat_layers=[256, 256, 256], 
+                 lpf_layers=[64, 64]):
         """ Initialize a nonlinear DS estimator.
 
         Note: the 'nn' method is equivalent to using behavioral cloning.
@@ -42,6 +50,8 @@ class NL_DS(PlanningPolicyInterface):
             plot_model (bool, optional): Choose to plot or not. Defaults to False.
         """
         self.__lpf = None
+        self.__lpf_layers = lpf_layers
+        self.__fhat_layers = fhat_layers
         self.__data_dim = data_dim
 
         # snds params
@@ -256,8 +266,15 @@ class NL_DS(PlanningPolicyInterface):
         elif self.__network_type == 'sdsef':
             self.__nn_module = init_sdsef_model(input_dim=self.__data_dim, device=self.__device, goal=self.__goal)
         elif self.__network_type == 'snds':
-            self.__nn_module, self.__lpf  = init_snds_model(device=self.__device, lsd=self.__data_dim, alpha=self.__alpha, eps=self.__epsilon,
-                                                               relaxed=self.__relaxed, goal=self.__goal)
+            self.__nn_module, self.__lpf  = init_snds_model(
+                device=self.__device, 
+                lsd=self.__data_dim, 
+                fhat_layers=self.__fhat_layers, 
+                lpf_layers=self.__lpf_layers, 
+                alpha=self.__alpha, 
+                eps=self.__epsilon,
+                relaxed=self.__relaxed, 
+                goal=self.__goal)
         else:
             raise NotImplementedError(f'Network type {self.__network_type} is not available!')
 

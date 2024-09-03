@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 from lib.utils.log_config import logger
 import cv2
+from lib.utils.utils import time_stamp
+import os
 
 def get_next_ee_pos (policy, current_ee_pos):
     #convert to np array
@@ -28,14 +30,12 @@ def get_next_ee_pos (policy, current_ee_pos):
 
 def playback_dataset(
     dataset_path,
-    video_path=None,
+    video_name=None,
     camera_names=["agentview"],
     video_skip=5,
     policies=None,
     subgoals=None,
-    multiplier=1,
-    force_dim = None,
-    force_time_step = None,
+    multiplier=1
 ):
     """
     Playback a dataset with the given policies and waypoints, while also plotting the 
@@ -43,7 +43,7 @@ def playback_dataset(
     
     args:
         dataset_path (str): path to the hdf5 dataset
-        video_path (str): path to save the video to
+        video_name (str): path to save the video to
         render_image_names (list): list of camera names to render
         video_skip (int): Number of steps to skip between video frames
         policies (list): list of policies to use for playback
@@ -51,9 +51,9 @@ def playback_dataset(
         multiplier (float): scaling factor for the action space
     """
     # some arg checking
-    write_video = (video_path is not None)
-    print("writing video to ", video_path)
-    
+    write_video = True
+    print("writing video to ", video_name)
+
     # Create environment
     dummy_spec = dict(
         obs=dict(
@@ -80,7 +80,7 @@ def playback_dataset(
         pass
 
     # Initialize video writer
-    video_writer = imageio.get_writer(video_path, fps=20)
+    video_writer = imageio.get_writer(video_name, fps=20)
 
     # Get initial state of environment
     obs = env.reset()
@@ -92,11 +92,8 @@ def playback_dataset(
     action_num = 0
     distances = []
 
-    apply_force = force_dim is not None and force_time_step is not None
-
     for i in range(len(subgoals)):
-        prev_distance = 0
-        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.008 and action_num < 5000:
+        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.010 and action_num < 5000:
             current_pos = obs["robot0_eef_pos"]
             subgoal_pos = subgoals[i]["subgoal_pos"]
             distance = round(math.dist(subgoal_pos, current_pos), 5)
@@ -118,7 +115,8 @@ def playback_dataset(
 
             if action_num % 25 == 0:
                 prev_distance = distance
-                print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}{str(0)*(7-len(str(distance)))}, Action: {action},Action number: {str(0)*(6-len(str(action_num)))}{action_num}")
+                #print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}{str(0)*(7-len(str(distance)))}, Action: {action},Action number: {str(0)*(6-len(str(action_num)))}{action_num}")
+                logger.info(f"Distance to subgoal {i}: {distance}, Action number: {action_num}")
                 #print("Action: ", action)                
             
             # Take the action in the environment
@@ -148,14 +146,14 @@ def playback_dataset(
             obs, _, _, _ = env.step(action)
             video_img = []
             for cam_name in camera_names:
-                video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Subgoal {i}"))
+                video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Gripper Vel: {obs['robot0_gripper_qvel'][0]}"))
             video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
             video_writer.append_data(video_img)
             action_num += 1
 
             # if the gripper vel is lower than 0.0001, it is most likely not moving 
             # and the object has been grasped
-            if abs(obs["robot0_gripper_qvel"][0]) <= 0.0001: 
+            if abs(obs["robot0_gripper_qvel"][0]) <= 0.001: 
                 break
 
     # Clean and convert distances to a numpy array
@@ -163,6 +161,7 @@ def playback_dataset(
 
     # Close video writer
     video_writer.close()
+    return video_path
 
 def put_text(img, text, font_size=1, thickness=2, position="top"):
     img = img.copy()
