@@ -81,19 +81,19 @@ def load_hdf5_data(
     # get the vel and pos data for each waypoint in the segment
     vel_data = []
     pos_data = []
-    ori_data = []
+    euler_data = []
     gripper_data = []
     for waypoint in segment_waypoints:
         vel_data.append(f[f'data/demo_{demo_id}/obs/robot0_eef_vel_lin'][waypoint])
         pos_data.append(f[f'data/demo_{demo_id}/obs/robot0_eef_pos'][waypoint])
-        ori_data.append(f[f'data/demo_{demo_id}/abs_actions'][waypoint][3:6])
+        euler_data.append(f[f'data/demo_{demo_id}/sim_euler_angles'][waypoint])
         gripper_data.append(f[f'data/demo_{demo_id}/abs_actions'][waypoint][-1])
         # can get orientation with f[f'data/demo_{demo_id}/obs/robot0_eef_quat'][waypoint]
         # can get gripper action with f[f'data/demo_{demo_id}/abs_action'][waypoint][-1] (the value will be either 1 for open or -1 for close)
 
     f.close()
     # convert to numpy arrays and return
-    return np.array(pos_data), np.array(vel_data), np.array(ori_data), np.array(gripper_data)
+    return np.array(pos_data), np.array(vel_data), np.array(gripper_data), np.array(euler_data)
 
 
 def load_snake_data(data_dir: str = "../data/"):

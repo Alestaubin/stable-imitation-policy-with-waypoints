@@ -56,7 +56,7 @@ import robomimic.utils.tensor_utils as TensorUtils
 import robomimic.utils.file_utils as FileUtils
 import robomimic.utils.env_utils as EnvUtils
 from robomimic.envs.env_base import EnvBase
-
+from log_config import logger
 
 def extract_trajectory(
     env, 
@@ -158,9 +158,9 @@ def dataset_states_to_obs(args):
         reward_shaping=args.shaped,
     )
 
-    print("==== Using environment with the following metadata ====")
-    print(json.dumps(env.serialize(), indent=4))
-    print("")
+    logger.info("==== Using environment with the following metadata ====")
+    logger.info(json.dumps(env.serialize(), indent=4))
+    logger.info("")
 
     # some operations for playback are robosuite-specific, so determine if this environment is a robosuite env
     is_robosuite_env = EnvUtils.is_robosuite_env(env_meta)
@@ -179,8 +179,8 @@ def dataset_states_to_obs(args):
     output_path = os.path.join(os.path.dirname(args.dataset), args.output_name)
     f_out = h5py.File(output_path, "w")
     data_grp = f_out.create_group("data")
-    print("input file: {}".format(args.dataset))
-    print("output file: {}".format(output_path))
+    logger.info("input file: {}".format(args.dataset))
+    logger.info("output file: {}".format(output_path))
 
     total_samples = 0
     for ind in range(len(demos)):
@@ -233,7 +233,7 @@ def dataset_states_to_obs(args):
             ep_data_grp.attrs["model_file"] = traj["initial_state_dict"]["model"] # model xml for this episode
         ep_data_grp.attrs["num_samples"] = traj["actions"].shape[0] # number of transitions in this episode
         total_samples += traj["actions"].shape[0]
-        print("ep {}: wrote {} transitions to group {}".format(ind, ep_data_grp.attrs["num_samples"], ep))
+        logger.info("ep {}: wrote {} transitions to group {}".format(ind, ep_data_grp.attrs["num_samples"], ep))
 
 
     # copy over all filter keys that exist in the original hdf5
@@ -243,7 +243,7 @@ def dataset_states_to_obs(args):
     # global metadata
     data_grp.attrs["total"] = total_samples
     data_grp.attrs["env_args"] = json.dumps(env.serialize(), indent=4) # environment info
-    print("Wrote {} trajectories to {}".format(len(demos), output_path))
+    logger.info("Wrote {} trajectories to {}".format(len(demos), output_path))
 
     f.close()
     f_out.close()

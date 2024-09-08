@@ -1,3 +1,7 @@
+"""
+A collection of functions to playback the simulation with the given policies and waypoints.
+"""
+
 import h5py
 import imageio
 import numpy as np
@@ -34,6 +38,7 @@ def playback_dataset(
     camera_names=["agentview"],
     video_skip=5,
     policies=None,
+    angular_policies=None,
     subgoals=None,
     multiplier=1
 ):
@@ -84,40 +89,50 @@ def playback_dataset(
 
     # Get initial state of environment
     obs = env.reset()
-    initial_ee_quat = obs["robot0_eef_quat"]
-    mat = TransUtils.quat2mat(initial_ee_quat)
-    euler = TransUtils.mat2euler(mat)
     
-    #initial_ee_ori = euler
     action_num = 0
     distances = []
 
     for i in range(len(subgoals)):
-        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.010 and action_num < 5000:
-            current_pos = obs["robot0_eef_pos"]
-            subgoal_pos = subgoals[i]["subgoal_pos"]
-            distance = round(math.dist(subgoal_pos, current_pos), 5)
+        subgoal_pos = subgoals[i]["subgoal_pos"]
+        subgoal_ee_euler = subgoals[i]["subgoal_euler"]
 
-            # Get the next ee_pos
-            next_ee_pos = np.array(get_next_ee_pos(policies[i], current_pos)[0])
-            #action_ori = initial_ee_ori
-            action_ori = np.array([0, 0, 0])  # NOTE: don't change the orientation for now
-            action_gripper = np.array([0])  # NOTE: gripper action is 0 for now
-            action = np.concatenate((next_ee_pos, action_ori, action_gripper))
+        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.001 and action_num < 5000:
+            current_ee_pos = obs["robot0_eef_pos"]
+            distance = round(math.dist(subgoal_pos, current_ee_pos), 5)
+            
+            sim_quat = env.env.sim.data.get_body_xquat('gripper0_eef')
+            sim_quat = TransUtils.convert_quat(sim_quat)
+            sim_mat = TransUtils.quat2mat(sim_quat)
+            sim_euler = TransUtils.mat2euler(sim_mat)
 
-            """if distance < 0.035: # if the distance is small, switch controller
-                logger.info("Switching controller")
-                next_ee_pos = (subgoals[i]["subgoal_pos"] - obs["robot0_eef_pos"])/distance * 0.1
-                action = np.concatenate((next_ee_pos, action_ori, action_gripper))
-            else:"""
+            # reshape
+            current_ee_pos = np.array(current_ee_pos).reshape(1,3)
+
+            # Get the linear action
+            action_linear = np.array(policies[i].predict(current_ee_pos))[0]
+
+            if angular_policies is None:
+                action_angular = subgoal_ee_euler - sim_euler
+                #normalize if norm is too big
+                if np.linalg.norm(action_angular) > 0.25:
+                    print("Normalizing action_angular")
+                    action_angular = action_angular / np.linalg.norm(action_angular)
+            else: 
+                action_angular = angular_policies[i].predict(current_ee_pos)[0] # NOTE: let's see if this works. It does not :(
+
+            if i == 0 :
+                action_gripper = np.array([-1])  # Open the gripper for the first subgoal
+            else: 
+                action_gripper = np.array([0]) 
+
+            action = np.concatenate((action_linear, action_angular, action_gripper))
             
             action = np.array(action, copy=True)
 
+            # print feedback
             if action_num % 25 == 0:
-                prev_distance = distance
-                #print(f"Subgoal {i} pos: {subgoal_pos}, Current ee pos: {current_pos}, Distance: {distance}{str(0)*(7-len(str(distance)))}, Action: {action},Action number: {str(0)*(6-len(str(action_num)))}{action_num}")
-                logger.info(f"Distance to subgoal {i}: {distance}, Action number: {action_num}")
-                #print("Action: ", action)                
+                logger.info(f"Distance to subgoal {i}: {distance}, Action number: {action_num}, Current euler: {sim_euler}, Subgoal euler: {subgoal_ee_euler}")
             
             # Take the action in the environment
             obs, _, _, _ = env.step(action)
@@ -126,13 +141,13 @@ def playback_dataset(
             if action_num % video_skip == 0:
                 video_img = []
                 for cam_name in camera_names:
-                    video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Subgoal {i}"))
+                    video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Subgoal {i}, Action: {action}", font_size=0.25, thickness=1, position="bottom"))
                 video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
+                video_img = put_text(video_img, f"ee_euer: {sim_euler}, ee_pos: {obs['robot0_eef_pos']}", font_size=0.25, thickness=1, position="top")
                 video_writer.append_data(video_img)
         
             action_num += 1
-            
-            # maybe apply external force to arm                
+
 
         # Activate the gripper
         # NOTE : This is a temporary solution. There should be a check that the object has been grasped 

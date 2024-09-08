@@ -13,7 +13,7 @@ Example usage:
 import h5py
 import numpy as np
 import argparse
-
+from log_config import logger
 # Define constants
 POINT_GAP = 15
 FUTURE_POINTS_COUNT = 10
@@ -46,7 +46,7 @@ def process_dataset(dataset_file):
             # Create the new dataset
             f.create_dataset(f'data/demo_{i}/obs/robot0_eef_pos_future_traj', data=future_traj_data)
 
-    print(f"Processed {DEMO_COUNT} demos!")
+    logger.info(f"Processed {DEMO_COUNT} demos!")
 
 
 if __name__ == '__main__':

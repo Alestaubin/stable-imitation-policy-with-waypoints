@@ -45,30 +45,35 @@ def waypoint_policy(learner_type: str,
                     lpf_layers: Optional[List[int]] = [16, 16],
                     eps: Optional[float] = 0.01,
                     alpha: Optional[float] = 0.01,
-                    relaxed: Optional[bool] = False) :
+                    relaxed: Optional[bool] = False, 
+                    angular: Optional[bool] = False):
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
-    name = f'{model_name}-{learner_type}-subgoal{subgoal}-{time_stamp()}'
+    if angular:
+        name = f'{model_name}-{learner_type}-subgoal{subgoal}-angular-{time_stamp()}'
+    else:
+        name = f'{model_name}-{learner_type}-subgoal{subgoal}-{time_stamp()}'
+    
     goal = waypoint_positions[-1].reshape(1, waypoint_positions.shape[1])
 
     # set goal velocity to zero
     waypoint_velocities[-1] = np.zeros(waypoint_velocities[-1].shape)
     
     # Maybe normalize the data
-    if normalize_magnitude is not None:
+    if normalize_magnitude is not None and not angular:
         waypoint_velocities = normalize_waypoints(waypoint_velocities, normalize_magnitude)
     
     # Plot the waypoints
     scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Waypoints')
     
     # Maybe clean the data 
-    if clean:
+    if clean and not angular:
         waypoint_positions, waypoint_velocities = clean_waypoints(waypoint_positions, waypoint_velocities)
         scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Cleaned Waypoints')
     
     # Maybe augment the data
-    if augment_rate is not None and augment_alpha is not None:   
+    if augment_rate is not None and augment_alpha is not None and not angular:   
         logger.info(f'Augmenting data with rate {augment_rate} and alpha {augment_alpha} according to a {augment_distribution} distribution.')
         waypoint_positions, waypoint_velocities = augment_data(waypoint_positions, waypoint_velocities, augment_alpha, augment_rate, augment_distribution)
         scatter_waypoints(waypoint_positions, waypoint_velocities, title=f'Subgoal {subgoal} Augmented Waypoints')
@@ -77,11 +82,11 @@ def waypoint_policy(learner_type: str,
         model = NL_DS(network=learner_type, 
                       data_dim=waypoint_positions.shape[1], 
                       goal=goal, 
-                      device=device, 
-                      eps=eps, 
-                      alpha=alpha, 
-                      relaxed=relaxed, 
-                      fhat_layers=fhat_layers, 
+                      device=device,
+                      eps=eps,
+                      alpha=alpha,
+                      relaxed=relaxed,
+                      fhat_layers=fhat_layers,
                       lpf_layers=lpf_layers)
         model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs, lr_initial=1e-4)
     else:
@@ -100,10 +105,23 @@ def waypoint_policy(learner_type: str,
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_position = subgoal_data["waypoint_position"]
-    waypoint_velocity = subgoal_data["waypoint_velocity"]
-    #print(f"Subgoal {subgoal_index} waypoint positions: {waypoint_position}")
-    #print(f"Subgoal {subgoal_index} waypoint velocities: {waypoint_velocity}")
-    ds_policy = waypoint_policy(
+    #waypoint_ee_orientation = subgoal_data["waypoint_ee_ori"]
+
+    #waypoint_velocity = subgoal_data["waypoint_linear_velocity"]
+    waypoint_velocity = np.zeros(waypoint_position.shape)
+    #waypoint_ang_velocity = np.zeros(waypoint_ee_orientation.shape)
+    waypoint_ang_velocity = subgoal_data["waypoint_ang_vel"]
+
+    for i in range (len(waypoint_position)):
+        if i == len(waypoint_position) - 1:
+            waypoint_velocity[i] = np.zeros(waypoint_velocity[i].shape)
+            #waypoint_ang_velocity[i] = np.zeros(waypoint_ang_velocity[i].shape)
+        else:
+            waypoint_velocity[i] = waypoint_position[i+1] - waypoint_position[i] 
+            #waypoint_ang_velocity[i] = waypoint_ee_orientation[i+1] - waypoint_ee_orientation[i]
+    
+    # Train a policy for the linear velocity
+    _ = waypoint_policy(
         config['training']['learner_type'],
         waypoint_positions=waypoint_position,
         waypoint_velocities=waypoint_velocity,
@@ -119,8 +137,29 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         lpf_layers=config["snds"]['lpf_layers'],
         eps=config["snds"]['eps'],
         alpha=config["snds"]['alpha'],
-        relaxed=config["snds"]['relaxed']
+        relaxed=config["snds"]['relaxed'],
+        angular=False
     )
+    # train a policy for the angular velocity
+    """_ = waypoint_policy(
+        config['training']['learner_type'],
+        waypoint_positions=waypoint_position,
+        waypoint_velocities=waypoint_ang_velocity,
+        n_epochs=config["training"]['num_epochs'],
+        device=config["training"]['device'],
+        subgoal=subgoal_index,
+        augment_rate=None,
+        augment_alpha=None,
+        augment_distribution=None,
+        normalize_magnitude=config["data_processing"]['normalize_magnitude'],
+        clean=False,
+        fhat_layers=config["snds"]['fhat_layers'],
+        lpf_layers=config["snds"]['lpf_layers'],
+        eps=config["snds"]['eps'],
+        alpha=config["snds"]['alpha'],
+        relaxed=config["snds"]['relaxed'],
+        angular=True
+    )"""
 
     logger.info(f"Subgoal {subgoal_index} training complete.")
 
@@ -134,22 +173,21 @@ def main(config_path):
 
     # get number of subgoals in the demo
     with h5py.File(config["data"]['data_dir'], 'r') as f: 
-        #print(f"data/demo_{demo}/{config['subgoals_dataset']}")
         subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
         num_subgoals = len(subgoals)
 
     for i in range(num_subgoals):
-        waypoint_position, waypoint_velocity, waypoint_orientation, waypoint_gripper_action = load_hdf5_data(
+        waypoint_position, waypoint_velocity, waypoint_gripper_action, waypoint_ee_euler = load_hdf5_data(
             dataset=config["data"]['data_dir'],
             demo_id=demo,
             waypoints_dataset_name=config["data"]['waypoints_dataset'],
             subgoals_dataset_name=config["data"]['subgoals_dataset'],
             subgoal=i
         )
-        data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_velocity": waypoint_velocity, "waypoint_orientation": waypoint_orientation, "waypoint_gripper_action": waypoint_gripper_action}
+        data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_linear_velocity": waypoint_velocity, "waypoint_gripper_action": waypoint_gripper_action, "waypoint_ee_euler": waypoint_ee_euler}
 
     logger.info(f'Data loaded from {config["data"]["data_dir"]}.')
-    if config["data"]['model_names'] is None or config["data"]['model_dir'] is None:
+    if config["data"]['linear_policies'] is None or config["data"]['model_dir'] is None:
         # Use multiprocessing to train a policy for each subgoal
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
         
@@ -171,7 +209,7 @@ def main(config_path):
         return
     else:
         policies = []
-        for i, model_name in enumerate(config["data"]['model_names']):
+        for i, model_name in enumerate(config["data"]['linear_policies']):
             logger.info(f"Loading model {model_name}")
             waypoint_positions = data["subgoal_"+str(i)]["waypoint_position"]
             model = NL_DS(
@@ -188,6 +226,29 @@ def main(config_path):
             # Load the model
             model.load(model_name=model_name, dir=config["data"]["model_dir"])
             policies.append(model)
+        
+        # if using dynamics for angular velocity
+        if config["data"]["angular_policies"] is not None:
+            angular_policies = []
+            for i, model_name in enumerate(config["data"]['angular_policies']):
+                logger.info(f"Loading model {model_name}")
+                waypoint_positions = data["subgoal_"+str(i)]["waypoint_position"]
+                model = NL_DS(
+                    network=config["training"]['learner_type'], 
+                    data_dim=waypoint_position.shape[1], 
+                    goal=waypoint_position[-1].reshape(1, waypoint_positions.shape[1]), 
+                    device=config['training']['device'],
+                    eps=config["snds"]['eps'], 
+                    alpha=config["snds"]['alpha'],
+                    relaxed=config["snds"]['relaxed'],
+                    fhat_layers=config["snds"]['fhat_layers'],
+                    lpf_layers=config["snds"]['lpf_layers']
+                    )
+                # Load the model
+                model.load(model_name=model_name, dir=config["data"]["model_dir"])
+                angular_policies.append(model)
+        else:
+            angular_policies = None
     
     # maybe plot the rollouts 
     if config["simulation"]['plot']:
@@ -213,9 +274,11 @@ def main(config_path):
             camera_names=config["simulation"]['camera_names'],
             video_skip=config["simulation"]['video_skip'],
             policies=policies,
-            subgoals=[{"subgoal_pos": subgoal_data["waypoint_position"][-1],
-                       "subgoal_ori": subgoal_data["waypoint_orientation"][-1],
-                       "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
+            angular_policies=angular_policies,
+            subgoals=[{
+                    "subgoal_pos": subgoal_data["waypoint_position"][-1],
+                    "subgoal_euler": subgoal_data["waypoint_ee_euler"][-1],
+                    "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
             multiplier=config["simulation"]['multiplier']
         )
         logger.info(f"Playback complete. Video saved to {video_full_name}")

@@ -14,6 +14,8 @@ import robomimic.utils.obs_utils as ObsUtils
 import robomimic.utils.env_utils as EnvUtils
 import robomimic.utils.file_utils as FileUtils
 
+from log_config import logger
+
 
 def main(args):
     # create environment (delta control)
@@ -32,7 +34,7 @@ def main(args):
     demos = list(f["data"].keys())
     inds = np.argsort([int(elem[5:]) for elem in demos])
     demos = [demos[i] for i in inds]
-    print(f"Converting actions from {args.start_idx} to {args.end_idx}")
+    logger.info(f"Converting actions from {args.start_idx} to {args.end_idx}")
     assert args.start_idx >= 0 and args.end_idx < len(demos)
 
     for idx in tqdm(range(args.start_idx, args.end_idx + 1), desc="Converting actions"):
@@ -80,11 +82,22 @@ def main(args):
             obs[k] = np.stack(obs[k], axis=0)
 
         # dump into a file of abs_actions in the original dataset
+        if f"data/{ep}/abs_actions" in f:
+            logger.info(f"Overwriting abs_actions in {ep}")
+            del f[f"data/{ep}/abs_actions"]
+        
         f[f"data/{ep}/abs_actions"] = actions
 
         # dump into a file of abs_obs in the original dataset
         for k in obs.keys():
+            if f"data/{ep}/abs_obs/{k}" in f:
+                logger.info(f"Overwriting abs_obs/{k} in {ep}")
+                del f[f"data/{ep}/abs_obs/{k}"]
             f[f"data/{ep}/abs_obs/{k}"] = obs[k]
+        
+        if f"data/{ep}/initial_state" in f:
+            logger.info(f"Overwriting initial_state in {ep}")
+            del f[f"data/{ep}/initial_state"]
         f[f"data/{ep}/initial_state"] = initial_state
 
     f.close()

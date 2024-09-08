@@ -116,17 +116,17 @@ mv task_dataset path/to/data/name_of_task.hdf5
 ```
 2. Preprocess raw data and extract images
 ```
-python lib/data_processing/preprocess_hdf5.py -i ./data/name_of_task/task_dataset.hdf5 -o ./data/name_of_task/demo_modified.hdf5
+python lib/utils/preprocess_hdf5.py -i ./data/name_of_task/task_dataset.hdf5 -o ./data/name_of_task/demo_modified.hdf5 --workspace '/Users/alexst-aubin/SummerResearch24/V2' --libero_folder 'libero_90'
 
-python lib/data_processing/dataset_states_to_obs.py --dataset './data/name_of_task/demo_modified.hdf5' --done_mode 0 --camera_names agentview robot0_eye_in_hand --camera_height 84 --camera_width 84 --output_name image_demo_local.hdf5 --exclude-next-obs
+python lib/utils/dataset_states_to_obs.py --dataset './data/name_of_task/demo_modified.hdf5' --done_mode 0 --camera_names agentview robot0_eye_in_hand --camera_height 84 --camera_width 84 --output_name image_demo_local.hdf5 --exclude-next-obs
 ```
 3. Extract end-effector trajectory for training
 ```
-python lib/data_processing/dataset_extract_traj_plans.py --dataset 'data/name_of_task/image_demo_local.hdf5'
+python lib/utils/dataset_extract_traj_plans.py --dataset 'data/name_of_task/image_demo_local.hdf5'
 ```
 4. Convert delta actions to absolute actions for waypoint extraction
 ```
-python lib/data_processing/robomimic_convert_action.py --dataset 'data/name_of_task/image_demo_local.hdf5'
+python lib/utils/robomimic_convert_action.py --dataset 'data/name_of_task/image_demo_local.hdf5'
 ```
 5. Extract waypoints using [AWE](https://lucys0.github.io/awe/).
 ```

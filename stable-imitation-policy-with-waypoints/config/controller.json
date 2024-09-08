@@ -6,18 +6,19 @@
         "device": "cpu"
     },
     "data":{
-        "model_names": ["waypoint-test-snds-subgoal0-03-09-09-05", "waypoint-test-snds-subgoal1-03-09-09-05", "waypoint-test-snds-subgoal2-03-09-09-05"],
+        "linear_policies": ["waypoint-test-snds-subgoal0-08-09-13-59", "waypoint-test-snds-subgoal1-08-09-13-59", "waypoint-test-snds-subgoal2-08-09-13-59"],
+        "angular_policies": null,
         "model_dir": "res/",
         "waypoints_dataset": "AWE_waypoints_0025",
         "subgoals_dataset": "AWE_subgoals_0025",
-        "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE1_put_the_black_bowl_on_the_plate/image_demo_local.hdf5"
+        "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/KITCHEN_SCENE5_put_the_ketchup_in_the_top_drawer_of_the_cabinet_demo/image_demo_local.hdf5"
     },
     "simulation":{
         "playback": true,
         "plot": true,
         "video_skip": 5,
         "multiplier": 1,
-        "video_name": "put_the_black_bowl_on_the_plate.mp4",
+        "video_name": "task.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"]
     },
     "data_processing":{
