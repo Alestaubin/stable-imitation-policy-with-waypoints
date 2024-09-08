@@ -153,6 +153,9 @@ def clean_waypoints(waypoint_positions, waypoint_velocities):
     """
     A function that removes any ood waypoints.
     """
+    if len(waypoint_positions) < 3:
+        return waypoint_positions, waypoint_velocities
+
     for i in range(1, len(waypoint_positions)-2): # last waypoint has zero velocity, 
         # if adjacent waypoints have velocity vectors that are too different, check which one is the outlier
         # compare angle between vectors

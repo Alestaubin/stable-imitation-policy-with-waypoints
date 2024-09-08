@@ -193,45 +193,6 @@ def playback_trajectory_with_env(
     
     hdf5_file["data/{}".format(demo)].create_dataset("sim_euler_angles", data=np.array(sim_euler_angles))
 
-
-
-def playback_trajectory_with_obs(
-    traj_grp,
-    video_writer, 
-    video_skip=5, 
-    image_names=None,
-    first=False,
-):
-    """
-    This function reads all "rgb" observations in the dataset trajectory and
-    writes them into a video.
-
-    Args:
-        traj_grp (hdf5 file group): hdf5 group which corresponds to the dataset trajectory to playback
-        video_writer (imageio writer): video writer
-        video_skip (int): determines rate at which environment frames are written to video
-        image_names (list): determines which image observations are used for rendering. Pass more than
-            one to output a video with multiple image observations concatenated horizontally.
-        first (bool): if True, only use the first frame of each episode.
-    """
-    assert image_names is not None, "error: must specify at least one image observation to use in @image_names"
-    video_count = 0
-
-    traj_len = traj_grp["actions"].shape[0]
-    for i in range(traj_len):
-        if video_count % video_skip == 0:
-            # concatenate image obs together
-            im = [traj_grp["obs/{}".format(k)][i] for k in image_names]
-            frame = np.concatenate(im, axis=1)
-            #print(traj_grp["abs_actions"][i][3:6])
-            frame = put_text(frame, traj_grp["abs_actions"][i][3:6], font_size=1, thickness=2, position="top")
-            video_writer.append_data(frame)
-        video_count += 1
-
-        if first:
-            break
-
-
 def playback_dataset(args):
     # some arg checking
     write_video = (args.video_path is not None)
@@ -248,31 +209,26 @@ def playback_dataset(args):
         # on-screen rendering can only support one camera
         assert len(args.render_image_names) == 1
 
-    if args.use_obs:
-        assert write_video, "playback with observations can only write to video"
-        assert not args.use_actions, "playback with observations is offline and does not support action playback"
-
     # create environment only if not playing back with observations
-    if not args.use_obs:
-        # need to make sure ObsUtils knows which observations are images, but it doesn't matter 
-        # for playback since observations are unused. Pass a dummy spec here.
-        dummy_spec = dict(
-            obs=dict(
-                    low_dim=["robot0_eef_pos"],
-                    rgb=[],
-                ),
-        )
-        ObsUtils.initialize_obs_utils_with_obs_specs(obs_modality_specs=dummy_spec)
+    # need to make sure ObsUtils knows which observations are images, but it doesn't matter 
+    # for playback since observations are unused. Pass a dummy spec here.
+    dummy_spec = dict(
+        obs=dict(
+                low_dim=["robot0_eef_pos"],
+                rgb=[],
+            ),
+    )
+    ObsUtils.initialize_obs_utils_with_obs_specs(obs_modality_specs=dummy_spec)
 
-        env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path=args.dataset)
+    env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path=args.dataset)
 
-        if args.absolute:
-            env_meta["env_kwargs"]["controller_configs"]["control_delta"] = False
+    if args.absolute:
+        env_meta["env_kwargs"]["controller_configs"]["control_delta"] = False
 
-        env = EnvUtils.create_env_from_metadata(env_meta=env_meta, render=args.render, render_offscreen=write_video)
+    env = EnvUtils.create_env_from_metadata(env_meta=env_meta, render=args.render, render_offscreen=write_video)
 
-        # some operations for playback are robosuite-specific, so determine if this environment is a robosuite env
-        is_robosuite_env = EnvUtils.is_robosuite_env(env_meta)
+    # some operations for playback are robosuite-specific, so determine if this environment is a robosuite env
+    is_robosuite_env = EnvUtils.is_robosuite_env(env_meta)
 
     f = h5py.File(args.dataset, "r+")
 
@@ -291,7 +247,7 @@ def playback_dataset(args):
             demos = [demos[args.start_idx]]
         else:
             demos = demos[args.start_idx :args.end_idx]
-     # maybe dump video
+    # maybe dump video
     video_writer = None
     if write_video:
         video_writer = imageio.get_writer(args.video_path, fps=20)
@@ -300,16 +256,6 @@ def playback_dataset(args):
         ep = demos[ind]
         print("Playing back episode: {}".format(ep))
 
-        if args.use_obs:
-            playback_trajectory_with_obs(
-                traj_grp=f["data/{}".format(ep)], 
-                video_writer=video_writer, 
-                video_skip=args.video_skip,
-                image_names=args.render_image_names,
-                first=args.first,
-            )
-            continue
-
         # prepare initial state to reload from
         states = f["data/{}/states".format(ep)][()]
         initial_state = dict(states=states[0])
@@ -317,10 +263,11 @@ def playback_dataset(args):
             initial_state["model"] = f["data/{}".format(ep)].attrs["model_file"]
 
         # supply actions if using open-loop action playback
-        actions = None
-        if args.use_actions:
-            actions = f["data/{}/actions".format(ep)][()]
+        actions = f["data/{}/actions".format(ep)][()]
 
+        abs_actions = None
+        if args.absolute:
+            abs_actions = f["data/{}/abs_actions".format(ep)][()]
         playback_trajectory_with_env(
             env=env, 
             initial_state=initial_state, 
@@ -331,7 +278,7 @@ def playback_dataset(args):
             video_skip=args.video_skip,
             camera_names=args.render_image_names,
             first=args.first,
-            abs_actions=f["data/{}/abs_actions".format(ep)][()],
+            abs_actions=abs_actions,
             absolute=args.absolute,
             demo=ep,
             hdf5_file=f
@@ -368,20 +315,6 @@ if __name__ == "__main__":
         type=int,
         default=None,
         help="Demo index to end playback at",
-    )
-
-    # Use image observations instead of doing playback using the simulator env.
-    parser.add_argument(
-        "--use-obs",
-        action='store_true',
-        help="visualize trajectories with dataset image observations instead of simulator",
-    )
-
-    # Playback stored dataset actions open-loop instead of loading from simulation states.
-    parser.add_argument(
-        "--use-actions",
-        action='store_true',
-        help="use open-loop action playback instead of loading sim states",
     )
 
     # Whether to render playback to screen

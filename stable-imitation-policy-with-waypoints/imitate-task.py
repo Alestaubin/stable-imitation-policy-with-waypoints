@@ -105,12 +105,9 @@ def waypoint_policy(learner_type: str,
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_position = subgoal_data["waypoint_position"]
-    #waypoint_ee_orientation = subgoal_data["waypoint_ee_ori"]
-
     #waypoint_velocity = subgoal_data["waypoint_linear_velocity"]
     waypoint_velocity = np.zeros(waypoint_position.shape)
-    #waypoint_ang_velocity = np.zeros(waypoint_ee_orientation.shape)
-    waypoint_ang_velocity = subgoal_data["waypoint_ang_vel"]
+    waypoint_ang_velocity = None
 
     for i in range (len(waypoint_position)):
         if i == len(waypoint_position) - 1:
@@ -167,9 +164,8 @@ def main(config_path):
     with open(config_path, 'r') as file:
         config = json.load(file)
 
-    demos = config["training"]['demos']
+    demo = config["training"]['demo']
     data = {}
-    demo = demos[0]
 
     # get number of subgoals in the demo
     with h5py.File(config["data"]['data_dir'], 'r') as f: 
@@ -190,9 +186,7 @@ def main(config_path):
     if config["data"]['linear_policies'] is None or config["data"]['model_dir'] is None:
         # Use multiprocessing to train a policy for each subgoal
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
-        
         ps = []
-
         # Create and start processes
         for i in range(len(data.keys())):
             p = mp.Process(
@@ -268,6 +262,15 @@ def main(config_path):
         with open(os.path.join(video_path, 'info.txt'), 'w') as f:
             f.write(f"{config}")
 
+        # get the episode number
+        ep = "demo_"+ str(config["training"]['demo'])
+        # get the initial state of the environment
+        # NOTE: this is important because the object positions are not the same across demos  
+        with h5py.File(config["data"]['data_dir'], 'r') as f: 
+            states = f["data/{}/states".format(ep)][()]
+            initial_state = dict(states=states[0])
+            initial_state["model"] = f["data/{}".format(ep)].attrs["model_file"]
+
         playback_dataset(
             dataset_path=config["data"]['data_dir'],
             video_name=video_full_name,
@@ -279,7 +282,7 @@ def main(config_path):
                     "subgoal_pos": subgoal_data["waypoint_position"][-1],
                     "subgoal_euler": subgoal_data["waypoint_ee_euler"][-1],
                     "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
-            multiplier=config["simulation"]['multiplier']
+            initial_state=initial_state
         )
         logger.info(f"Playback complete. Video saved to {video_full_name}")
         

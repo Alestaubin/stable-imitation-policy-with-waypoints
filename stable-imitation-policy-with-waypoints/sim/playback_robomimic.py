@@ -19,19 +19,6 @@ import cv2
 from lib.utils.utils import time_stamp
 import os
 
-def get_next_ee_pos (policy, current_ee_pos):
-    #convert to np array
-    current_ee_pos = np.array(current_ee_pos)
-    # reshape
-    current_ee_pos = current_ee_pos.reshape(1,3)
-    vel = np.array(policy.predict(current_ee_pos))
-    # uncomment the following if using absolute actions controller instead of delta actions controller
-    # next_ee_pos = current_ee_pos + vel * multiplier
-    # print ("Next ee pos: ", next_ee_pos)
-    # return next_ee_pos
-    return vel
-
-
 def playback_dataset(
     dataset_path,
     video_name=None,
@@ -40,7 +27,7 @@ def playback_dataset(
     policies=None,
     angular_policies=None,
     subgoals=None,
-    multiplier=1
+    initial_state=None,
 ):
     """
     Playback a dataset with the given policies and waypoints, while also plotting the 
@@ -71,12 +58,15 @@ def playback_dataset(
     env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path)
     env_meta["env_kwargs"]["controller_configs"]["interpolation"] = "linear"
     env_meta["env_kwargs"]["controller_configs"]["control_delta"] = True # Whether to control the robot using delta or absolute commands (where absolute commands are taken in the world coordinate frame)
-    #env_meta["env_kwargs"]["controller_configs"]["multiplier"] = 10 # This value scales the input commands before they are applied by the controller.
 
     env = EnvUtils.create_env_from_metadata(env_meta=env_meta, render=False, render_offscreen=write_video)
-    print("=======================================================================================")
+    
+    # load the initial state
+    env.reset()
+    env.reset_to(initial_state)
+
+    print("=======================================================================================")    
     print("ENV:",env)
-    #print("SUBGOALS:",subgoals)
 
     if not EnvUtils.is_robosuite_env(env_meta): 
         raise ValueError("Playback only supported for robosuite environments.")
@@ -97,7 +87,7 @@ def playback_dataset(
         subgoal_pos = subgoals[i]["subgoal_pos"]
         subgoal_ee_euler = subgoals[i]["subgoal_euler"]
 
-        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.001 and action_num < 5000:
+        while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > 0.003 and action_num < 5000:
             current_ee_pos = obs["robot0_eef_pos"]
             distance = round(math.dist(subgoal_pos, current_ee_pos), 5)
             
@@ -117,7 +107,7 @@ def playback_dataset(
                 #normalize if norm is too big
                 if np.linalg.norm(action_angular) > 0.25:
                     print("Normalizing action_angular")
-                    action_angular = action_angular / np.linalg.norm(action_angular)
+                    action_angular = action_angular / np.linalg.norm(action_angular) * 0.25
             else: 
                 action_angular = angular_policies[i].predict(current_ee_pos)[0] # NOTE: let's see if this works. It does not :(
 
