@@ -244,10 +244,6 @@ def main(config_path):
         else:
             angular_policies = None
     
-    # maybe plot the rollouts 
-    if config["simulation"]['plot']:
-        plot_rollouts(data, policies)
-
     # maybe playback the rollout in the simulation
     if config["simulation"]['playback']:
         logger.info("Starting playback...")
@@ -256,6 +252,11 @@ def main(config_path):
         video_path = f"videos/{folder_name}"
         if not os.path.exists(video_path):
             os.makedirs(video_path)
+        
+        # maybe plot the rollouts 
+        if config["simulation"]['plot']:
+            plot_rollouts(data, policies, video_path)
+
 
         video_full_name = video_path + "/" + config["simulation"]['video_name']
         # save a file info.txt in the same directory as the video
@@ -282,7 +283,12 @@ def main(config_path):
                     "subgoal_pos": subgoal_data["waypoint_position"][-1],
                     "subgoal_euler": subgoal_data["waypoint_ee_euler"][-1],
                     "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
-            initial_state=initial_state
+            initial_state=initial_state,
+            write_video=config["simulation"]['write_video'],
+            rollouts=config["testing"]['num_rollouts'],
+            max_horizon=config["testing"]['max_horizon'],
+            verbose=config["testing"]['verbose'], 
+            slerp_steps=config["simulation"]['slerp_steps']
         )
         logger.info(f"Playback complete. Video saved to {video_full_name}")
         

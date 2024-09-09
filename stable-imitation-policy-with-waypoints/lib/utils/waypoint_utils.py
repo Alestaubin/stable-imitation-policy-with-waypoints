@@ -30,7 +30,7 @@ def scatter_waypoints(waypoint_position, waypoint_velocity, title):
     # save the plot
     fig.savefig(f'plots/waypoints/{title.replace(" ", "-")}.png')
 
-def plot_rollouts(data, policies):
+def plot_rollouts(data, policies, path):
     for i, ds_policy in enumerate(policies):
         waypoint_position = data["subgoal_" + str(i)]["waypoint_position"]
         if waypoint_position.shape[1] == 3:
@@ -65,7 +65,7 @@ def plot_rollouts(data, policies):
             ax.set_zlabel('X3')
             ax.legend()
             ax.set_title('DS Policy Waypoints')
-            fig.savefig(f'plots/yo-waypoints-policy-subgoal-{i}.png')
+            fig.savefig(f'{path}/3D-waypoints-policy-subgoal-{i}.png')
 
             fig2, axes = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -95,7 +95,8 @@ def plot_rollouts(data, policies):
 
             plt.suptitle('2D Projections of the 3D Plot')
 
-            fig2.savefig(f'plots/waypoints-projection-policy-subgoal-{i}.png')
+            fig2.savefig(f'{path}/2D-waypoints-policy-subgoal-{i}.png')
+
 def normalize_waypoints(waypoint_velocity, magnitude):
     """
     A function that normalizes the waypoint velocities.
