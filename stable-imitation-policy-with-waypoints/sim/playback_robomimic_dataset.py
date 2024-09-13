@@ -70,6 +70,7 @@ from robomimic.envs.env_base import EnvBase, EnvType
 from decimal import Decimal, getcontext 
 import cv2
 import robosuite.utils.transform_utils as TransUtils
+from PIL import Image
 
 
 # Define default cameras to use for each env type
@@ -182,6 +183,12 @@ def playback_trajectory_with_env(
                 for cam_name in camera_names:
                     video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
                 video_img = np.concatenate(video_img, axis=1) # concatenate horizontally
+                if video_count % (3 * video_skip) == 0:
+                    # save the video_img
+                    #cv2.imwrite(f"{os.path.dirname(args.video_path)}/video_img_{video_count}.png", video_img)
+                    im = Image.fromarray(video_img)
+                    im.save(f"{os.path.dirname(args.video_path)}/video_img_{video_count}.png")
+
                 video_img = put_text(video_img, f"{demo}, ee_euler: {sim_euler}, ee_pos: {obs['robot0_eef_pos']}", font_size=0.25, thickness=1, position="top")
                 video_writer.append_data(video_img)
             video_count += 1

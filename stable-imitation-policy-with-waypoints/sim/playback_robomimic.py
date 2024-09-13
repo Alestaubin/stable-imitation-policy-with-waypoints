@@ -35,6 +35,10 @@ def playback_dataset(
     max_horizon=2500,
     verbose=False,
     slerp_steps=None,
+    perturb_step=None, 
+    perturb_ee_pos=None,
+    noise_alpha=None, 
+    reset_on_fail=False,
 ):
     """
     Playback a dataset with the given policies and waypoints, while also plotting the 
@@ -49,6 +53,8 @@ def playback_dataset(
         subgoals (list): list of subgoals in the trajectory in the form [{"subgoal_pos":subgoal_pos, "subgoal_ori": subgoal_ori, "subgoal_gripper": subgoal_gripper}, ...]
         multiplier (float): scaling factor for the action space
     """
+    if verbose: 
+        logger.info(f"Subgoals: {subgoals}")
     # some arg checking
     if write_video:
         print("writing video to ", video_name)
@@ -82,6 +88,19 @@ def playback_dataset(
         logger.info(f"Using slerp with {slerp_steps} steps for orientation control")
         slerp = True
 
+    perturb = False
+    if perturb_step is not None and perturb_ee_pos is not None:
+        logger.info(f"Perturbing the EE position at step {perturb_step} with {perturb_ee_pos}")
+        perturb = True
+
+    if len(policies) == 1:
+        # handle the case where there is only one policy
+        policies = [policies[0] for _ in range(len(subgoals))]
+   
+    add_noise = noise_alpha is not None
+    if add_noise: 
+        proprio_corrupter = create_gaussian_noise_corrupter(mean=0.0, std=noise_alpha)
+
     num_successes = 0
     for j in range(rollouts):
         logger.info(f"Rollout {j}")
@@ -91,8 +110,10 @@ def playback_dataset(
         action_num = 0
         done = success = False
         post_success_steps = 0
+        env_was_reset = False
         for i in range(len(subgoals)):
             if success : 
+                print("success")
                 break
             subgoal_pos = subgoals[i]["subgoal_pos"]
             subgoal_ee_euler = subgoals[i]["subgoal_euler"]
@@ -100,10 +121,34 @@ def playback_dataset(
             subgoal_quat = TransUtils.mat2quat(subgoal_mat)
             # set the threshold for the distance to the subgoal
             # Insight: if grasping, need higher accuracy than if releasing
-            threshold = 0.003 if subgoals[i]["subgoal_gripper"] == 1 else 0.01
+            threshold = 0.008 if subgoals[i]["subgoal_gripper"] == 1 else 0.01
             first = True
             subgoal_action_num = 0
             while math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > threshold and action_num < max_horizon:
+                if add_noise:
+                    #print("before noise:",obs["robot0_eef_pos"])        
+                    obs["robot0_eef_pos"] = proprio_corrupter(obs["robot0_eef_pos"])
+                    #print("after noise:",obs["robot0_eef_pos"])
+                # Maybe perturb the EE position
+                if perturb and action_num == perturb_step[j]:
+                    logger.info(f"Perturbing the EE position")
+                    pseudo_action_num = 0
+
+                    while math.dist(obs["robot0_eef_pos"], perturb_ee_pos[j]) > 0.1 and pseudo_action_num < 50:
+                        action_linear = 2* np.array(perturb_ee_pos[j] - obs["robot0_eef_pos"])
+                        action_angular = np.zeros(3)
+                        action_gripper = np.array([0])
+                        action = np.concatenate((action_linear, action_angular, action_gripper))
+                        obs, _, _, _ = env.step(action) 
+                        if pseudo_action_num % video_skip == 0 and write_video:
+                            video_img = []
+                            for cam_name in camera_names:
+                                video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Perturbing to {perturb_ee_pos[j]}", font_size=1, thickness=2, position="bottom"))
+                            video_img = np.concatenate(video_img, axis=1)
+                            video_writer.append_data(video_img)
+
+                        pseudo_action_num += 1
+                
                 subgoal_action_num += 1
                 # Get the current end-effector position
                 current_ee_pos = obs["robot0_eef_pos"]
@@ -133,7 +178,6 @@ def playback_dataset(
                         fraction = subgoal_action_num/slerp_steps
                         if fraction >= 1:
                             fraction = 1
-                        
                         # We have two rotations, P and Q, and we want to find the rotation R such that applying P and then R is equivalent to applying Q. 
                         # In rotation matrices, this is easy: Q = R*P, so R = Q*P^-1.
                         next_R = slerp(fraction)
@@ -141,20 +185,18 @@ def playback_dataset(
                         err_R = next_R * R.from_euler('xyz', sim_euler, degrees=False).inv()
                         action_angular = err_R.as_euler('xyz', degrees=False)
                         next_euler = next_R.as_euler('xyz', degrees=False)
-                        #print("next_euler: ", next_euler)
-                        #action_angular =next_euler - sim_euler
                     else:
                         action_angular = subgoal_ee_euler - sim_euler
-                    #normalize if norm is too big
+                    # normalize if norm is too big
                     if np.linalg.norm(action_angular) > 0.25:
                         action_angular = action_angular / np.linalg.norm(action_angular) * 0.25
                 else: 
                     action_angular = angular_policies[i].predict(current_ee_pos)[0] # NOTE: let's see if this works. It does not :(
 
                 if i == 0 :
-                    action_gripper = np.array([-1])  # Open the gripper for the first subgoal
+                    action_gripper = np.array ([-1])  # Open the gripper for the first subgoal
                 else:
-                    action_gripper = np.array([0]) 
+                    action_gripper = np.array([0])
 
                 action = np.concatenate((action_linear, action_angular, action_gripper))
                 
@@ -162,9 +204,10 @@ def playback_dataset(
 
                 # print feedback
                 if action_num % 25 == 0 and verbose:
-                    print("subgoal_euler: ", subgoal_ee_euler, "sim_euler: ", sim_euler)
-                    print("subgoal_quat: ", subgoal_quat, "sim_quat: ", sim_quat)
+                    logger.info(f"subgoal_euler: {subgoal_ee_euler}, sim_euler: {sim_euler}")
+                    #print("subgoal_quat: ", subgoal_quat, "sim_quat: ", sim_quat)
                     logger.info(f"Distance to subgoal {i}: {distance}, Action number: {action_num}, Current euler: {sim_euler}, Subgoal euler: {subgoal_ee_euler}")
+                    logger.info(f"Action: {action}")
                 
                 # Take the action in the environment
                 obs, _, done, _ = env.step(action)
@@ -182,7 +225,7 @@ def playback_dataset(
         
                 # check if task is successful
                 success = env.is_success()["task"]
-                if success:
+                if success and not env_was_reset:
                     if post_success_steps == 0: 
                         num_successes += 1
                         logger.info(f"Task successful")
@@ -190,28 +233,50 @@ def playback_dataset(
                     if post_success_steps > 100:
                         post_success_steps = 0
                         break
+                
+            if math.dist(subgoals[i]["subgoal_pos"], obs["robot0_eef_pos"]) > threshold and action_num >= max_horizon and reset_on_fail:
+                env_was_reset = True
+                logger.info(f"subgoal failed")
+                action_num = 0
+                env.reset_to(initial_state)                
+                desired_joint_positions =  subgoals[i]["joint_pos"]
+                env.env.sim.data.qpos[env.env.robots[0].joint_indexes] = desired_joint_positions
+                video_img = []
+                for cam_name in camera_names:
+                    video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Reset env", font_size=1, thickness=2, position="bottom"))
+                video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
+                video_writer.append_data(video_img)
+
+
+            if verbose: 
+                logger.info(f"Reached subgoal {i} with distance: {distance}")
 
             # Activate the gripper
-            # NOTE : This is a temporary solution. There should be a check that the object has been grasped 
             action_gripper = subgoals[i]["subgoal_gripper"]
+            action_gripper_string = "Open" if action_gripper == -1 else "Close"
             action = np.zeros_like(action)
             action[-1] = action_gripper
             if verbose:
                 logger.info("\n####################################################\n################ Activating gripper ################\n####################################################")
+            gripper_action_num = 0
             while True:
                 obs, _, _, _ = env.step(action)
                 if action_num % video_skip == 0 and write_video:
                     video_img = []
                     for cam_name in camera_names:
-                        video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Gripper Vel: {obs['robot0_gripper_qvel'][0]}"))
+                        video_img.append(put_text(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name), f"Gripper Action: {action_gripper_string}", font_size=1, thickness=1, position="top"))
                     video_img = np.concatenate(video_img, axis=1)  # Concatenate horizontally
                     video_writer.append_data(video_img)
-                    action_num += 1
-
+                
+                action_num += 1
+                gripper_action_num += 1
                 # if the gripper vel is lower than 0.0001, it is most likely not moving 
                 # and the object has been grasped
-                if abs(obs["robot0_gripper_qvel"][0]) <= 0.001: 
+                if abs(obs["robot0_gripper_qvel"][0]) <= 0.001 and gripper_action_num > 25: 
                     break
+            if verbose:
+                logger.info("Gripper action done.")
+
         if not success:
             logger.info(f"Task failed")
 
@@ -239,3 +304,25 @@ def put_text(img, text, font_size=1, thickness=2, position="top"):
         cv2.LINE_AA,
     )
     return img
+
+def create_gaussian_noise_corrupter(mean, std, low=-np.inf, high=np.inf):
+    """
+    Creates a corrupter that applies gaussian noise to a given input with mean @mean and std dev @std
+
+    Args:
+        mean (float): Mean of the noise to apply
+        std (float): Standard deviation of the noise to apply
+        low (float): Minimum value for output for clipping
+        high (float): Maxmimum value for output for clipping
+
+    Returns:
+        function: corrupter
+    """
+
+    def corrupter(inp):
+        inp = np.array(inp)
+        noise = mean + std * np.random.randn(*inp.shape)
+        return np.clip(inp + noise, low, high)
+
+    return corrupter
+

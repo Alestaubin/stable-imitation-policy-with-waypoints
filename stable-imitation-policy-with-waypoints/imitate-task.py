@@ -31,7 +31,7 @@ def waypoint_policy(learner_type: str,
                     waypoint_positions: np.ndarray,
                     waypoint_velocities: np.ndarray,
                     n_epochs: int,
-                    plot: Optional[bool] = False,
+                    plot: Optional[bool] = True,
                     model_name: Optional[str] = 'waypoint-test',
                     save_dir: str = 'res/',
                     device: str = 'cuda:0' if torch.cuda.is_available() else 'cpu',
@@ -105,17 +105,7 @@ def waypoint_policy(learner_type: str,
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_position = subgoal_data["waypoint_position"]
-    #waypoint_velocity = subgoal_data["waypoint_linear_velocity"]
-    waypoint_velocity = np.zeros(waypoint_position.shape)
-    waypoint_ang_velocity = None
-
-    for i in range (len(waypoint_position)):
-        if i == len(waypoint_position) - 1:
-            waypoint_velocity[i] = np.zeros(waypoint_velocity[i].shape)
-            #waypoint_ang_velocity[i] = np.zeros(waypoint_ang_velocity[i].shape)
-        else:
-            waypoint_velocity[i] = waypoint_position[i+1] - waypoint_position[i] 
-            #waypoint_ang_velocity[i] = waypoint_ee_orientation[i+1] - waypoint_ee_orientation[i]
+    waypoint_velocity = subgoal_data["waypoint_linear_velocity"]
     
     # Train a policy for the linear velocity
     _ = waypoint_policy(
@@ -137,26 +127,6 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         relaxed=config["snds"]['relaxed'],
         angular=False
     )
-    # train a policy for the angular velocity
-    """_ = waypoint_policy(
-        config['training']['learner_type'],
-        waypoint_positions=waypoint_position,
-        waypoint_velocities=waypoint_ang_velocity,
-        n_epochs=config["training"]['num_epochs'],
-        device=config["training"]['device'],
-        subgoal=subgoal_index,
-        augment_rate=None,
-        augment_alpha=None,
-        augment_distribution=None,
-        normalize_magnitude=config["data_processing"]['normalize_magnitude'],
-        clean=False,
-        fhat_layers=config["snds"]['fhat_layers'],
-        lpf_layers=config["snds"]['lpf_layers'],
-        eps=config["snds"]['eps'],
-        alpha=config["snds"]['alpha'],
-        relaxed=config["snds"]['relaxed'],
-        angular=True
-    )"""
 
     logger.info(f"Subgoal {subgoal_index} training complete.")
 
@@ -171,19 +141,74 @@ def main(config_path):
     with h5py.File(config["data"]['data_dir'], 'r') as f: 
         subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
         num_subgoals = len(subgoals)
+    if config["data"]["waypoints_dataset"] is None:
+        logger.info(f'No AWE waypoints provided, using entire trajectory to train the model.')
+        # if no waypoints, train the policy on the entire trajectory 
+        with h5py.File(config["data"]['data_dir'], 'r') as f: 
+            abs_actions = f[f"data/demo_{demo}/abs_actions"]
+            ee_pos = abs_actions[:, :3]
+            ee_vel = f[f"data/demo_{demo}/obs/robot0_eef_vel_lin"][()]
+            ee_euler = abs_actions[:, 3:6]
+            waypoint_gripper_actions = abs_actions[:, -1]
+            subgoal_indices = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"][()]
+        #print("ee_pos", ee_pos.shape)
+        #print("ee_vel", ee_vel.shape)
+        #print("ee_euler", ee_euler.shape)
+        #print("waypoint_gripper_actions", waypoint_gripper_actions.shape)
+        #print("subgoal_indices", subgoal_indices)
+        for i in range(num_subgoals):
+            if i == 0:
+                start_idx = 0
+            else:
+                start_idx = subgoal_indices[i-1]
+            end_idx = subgoal_indices[i]+1
+            data["subgoal_" + str(i)] = {"waypoint_position": ee_pos[start_idx: end_idx], "waypoint_linear_velocity": ee_vel[start_idx: end_idx], "waypoint_gripper_action": waypoint_gripper_actions[start_idx: end_idx], "waypoint_ee_euler": ee_euler[start_idx: end_idx]}
+            #print("subgoal_" + str(i), data["subgoal_" + str(i)]["waypoint_gripper_action"])
+    else:
+        for i in range(num_subgoals):
 
-    for i in range(num_subgoals):
-        waypoint_position, waypoint_velocity, waypoint_gripper_action, waypoint_ee_euler = load_hdf5_data(
-            dataset=config["data"]['data_dir'],
-            demo_id=demo,
-            waypoints_dataset_name=config["data"]['waypoints_dataset'],
-            subgoals_dataset_name=config["data"]['subgoals_dataset'],
-            subgoal=i
-        )
-        data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_linear_velocity": waypoint_velocity, "waypoint_gripper_action": waypoint_gripper_action, "waypoint_ee_euler": waypoint_ee_euler}
+            waypoint_position, _, waypoint_gripper_action, waypoint_ee_euler = load_hdf5_data(
+                dataset=config["data"]['data_dir'],
+                demo_id=demo,
+                waypoints_dataset_name=config["data"]['waypoints_dataset'],
+                subgoals_dataset_name=config["data"]['subgoals_dataset'],
+                subgoal=i
+            )
 
+            waypoint_velocity = np.zeros(waypoint_position.shape)
+            # set the velocity to be the difference between the waypoints
+            for j in range (len(waypoint_position)):
+                if j == len(waypoint_position) - 1:
+                    waypoint_velocity[j] = np.zeros(waypoint_velocity[j].shape)
+                else:
+                    waypoint_velocity[j] = waypoint_position[j+1] - waypoint_position[j] 
+            
+            data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_linear_velocity": waypoint_velocity, "waypoint_gripper_action": waypoint_gripper_action, "waypoint_ee_euler": waypoint_ee_euler}
+
+    #print("data", data)
     logger.info(f'Data loaded from {config["data"]["data_dir"]}.')
+
+    # get the subgoal info
+    subgoal_info = [{"subgoal_pos": subgoal_data["waypoint_position"][-1],
+                "subgoal_euler": subgoal_data["waypoint_ee_euler"][-1],
+                "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()]
+    
+    with h5py.File(config["data"]['data_dir'], 'r') as f: 
+        joint_pos = np.array(f[f"data/demo_{demo}/obs/robot0_joint_pos"])
+        subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
+        for i in range(num_subgoals):
+            subgoal_info[i]["joint_pos"] = joint_pos[subgoals[i]]
+        
     if config["data"]['linear_policies'] is None or config["data"]['model_dir'] is None:
+        if not config["training"]["segmentation"]:
+            logger.info(f'Training a single policy for the entire trajectory (no segmentation).')
+            # merge all the subgoals into one
+            waypoint_positions = np.concatenate([data["subgoal_" + str(i)]["waypoint_position"] for i in range(num_subgoals)], axis=0)
+            waypoint_velocities = np.concatenate([data["subgoal_" + str(i)]["waypoint_linear_velocity"] for i in range(num_subgoals)], axis=0)
+            waypoint_gripper_actions = np.concatenate([data["subgoal_" + str(i)]["waypoint_gripper_action"] for i in range(num_subgoals)], axis=0)
+            waypoint_ee_eulers = np.concatenate([data["subgoal_" + str(i)]["waypoint_ee_euler"] for i in range(num_subgoals)], axis=0)
+            data = {"subgoal_0":{"waypoint_position": waypoint_positions, "waypoint_linear_velocity": waypoint_velocities, "waypoint_gripper_action": waypoint_gripper_actions, "waypoint_ee_euler": waypoint_ee_eulers}}
+            
         # Use multiprocessing to train a policy for each subgoal
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
         ps = []
@@ -208,8 +233,8 @@ def main(config_path):
             waypoint_positions = data["subgoal_"+str(i)]["waypoint_position"]
             model = NL_DS(
                 network=config["training"]['learner_type'], 
-                data_dim=waypoint_position.shape[1], 
-                goal=waypoint_position[-1].reshape(1, waypoint_positions.shape[1]), 
+                data_dim=waypoint_positions.shape[1], 
+                goal=waypoint_positions[-1].reshape(1, waypoint_positions.shape[1]), 
                 device=config['training']['device'],
                 eps=config["snds"]['eps'], 
                 alpha=config["snds"]['alpha'],
@@ -221,28 +246,7 @@ def main(config_path):
             model.load(model_name=model_name, dir=config["data"]["model_dir"])
             policies.append(model)
         
-        # if using dynamics for angular velocity
-        if config["data"]["angular_policies"] is not None:
-            angular_policies = []
-            for i, model_name in enumerate(config["data"]['angular_policies']):
-                logger.info(f"Loading model {model_name}")
-                waypoint_positions = data["subgoal_"+str(i)]["waypoint_position"]
-                model = NL_DS(
-                    network=config["training"]['learner_type'], 
-                    data_dim=waypoint_position.shape[1], 
-                    goal=waypoint_position[-1].reshape(1, waypoint_positions.shape[1]), 
-                    device=config['training']['device'],
-                    eps=config["snds"]['eps'], 
-                    alpha=config["snds"]['alpha'],
-                    relaxed=config["snds"]['relaxed'],
-                    fhat_layers=config["snds"]['fhat_layers'],
-                    lpf_layers=config["snds"]['lpf_layers']
-                    )
-                # Load the model
-                model.load(model_name=model_name, dir=config["data"]["model_dir"])
-                angular_policies.append(model)
-        else:
-            angular_policies = None
+        angular_policies = None
     
     # maybe playback the rollout in the simulation
     if config["simulation"]['playback']:
@@ -255,7 +259,22 @@ def main(config_path):
         
         # maybe plot the rollouts 
         if config["simulation"]['plot']:
-            plot_rollouts(data, policies, video_path)
+            perturbation = config["simulation"]['perturb_step'] is not None and config["simulation"]['perturb_ee_pos'] is not None
+            perturbation_steps = config["simulation"]['perturb_step']
+            perturbation_vecs = config["simulation"]['perturb_ee_pos']
+            perturb = perturbation_steps is not None and perturbation_vecs is not None
+
+            for j in range(config["testing"]['num_rollouts']):
+                if perturb:
+                    perturbation_step = perturbation_steps[j]
+                    perturbation_vec = perturbation_vecs[j]
+                else:
+                    perturbation_step = None
+                    perturbation_vec = None    
+                
+                logger.info(f"Plotting rollout {j}")
+                #print("data", data)
+                plot_rollouts(data, policies, video_path, title=f'{config["training"]["learner_type"]} rollout{j}', perturbation=perturbation, perturbation_step=perturbation_step, perturbation_vec=perturbation_vec, reset_after_subgoal=config["simulation"]['reset_on_fail'])
 
 
         video_full_name = video_path + "/" + config["simulation"]['video_name']
@@ -279,16 +298,17 @@ def main(config_path):
             video_skip=config["simulation"]['video_skip'],
             policies=policies,
             angular_policies=angular_policies,
-            subgoals=[{
-                    "subgoal_pos": subgoal_data["waypoint_position"][-1],
-                    "subgoal_euler": subgoal_data["waypoint_ee_euler"][-1],
-                    "subgoal_gripper": subgoal_data["waypoint_gripper_action"][-1]} for subgoal_data in data.values()],
+            subgoals=subgoal_info,
             initial_state=initial_state,
             write_video=config["simulation"]['write_video'],
             rollouts=config["testing"]['num_rollouts'],
             max_horizon=config["testing"]['max_horizon'],
             verbose=config["testing"]['verbose'], 
-            slerp_steps=config["simulation"]['slerp_steps']
+            slerp_steps=config["simulation"]['slerp_steps'],
+            perturb_step=config["simulation"]['perturb_step'],
+            perturb_ee_pos=config["simulation"]['perturb_ee_pos'],
+            noise_alpha=config["simulation"]['noise_alpha'],
+            reset_on_fail=config["simulation"]['reset_on_fail'],
         )
         logger.info(f"Playback complete. Video saved to {video_full_name}")
         

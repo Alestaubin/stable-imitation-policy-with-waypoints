@@ -66,7 +66,7 @@ def replace_relative_path(xml_string, workspace):
     return ET.tostring(root, encoding="utf8").decode("utf8")
 
 
-def process_file(input_path, workspace, libero_folder, output_path=None):
+def process_file(input_path, workspace, libero_folder, output_path=None, bddl_file=None):
     """
     Preprocess given hdf5 file by replacing relative file path with absolute path
 
@@ -85,7 +85,11 @@ def process_file(input_path, workspace, libero_folder, output_path=None):
     with h5py.File(output_path, "r+") as f:
         bddl_file_name = f["data"].attrs.get("bddl_file_name")
         #logger.info("file name before: ", bddl_file_name)
-        bddl_file_name = f"{workspace}/LIBERO/libero/libero/bddl_files/{libero_folder}/" + os.path.basename(bddl_file_name)
+        if bddl_file is not None:
+            bddl_file_name = f"{workspace}/"+ bddl_file
+            logger.info(f"bddl file name is : {bddl_file_name}")
+        else:
+            bddl_file_name = f"{workspace}/LIBERO/libero/libero/bddl_files/{libero_folder}/" + os.path.basename(bddl_file_name)
         #logger.info("file name after: ", bddl_file_name)
         f["data"].attrs.modify("bddl_file_name", bddl_file_name)
         env_args = f['data'].attrs.get("env_args")
@@ -120,6 +124,11 @@ def main():
                         type=str,
                         default="libero_90",
                         help="name of the libero folder")
+    parser.add_argument("--bddl_file",
+                        type=str,
+                        default=None,
+                        help="Path to the bddl file")
+    
     args = parser.parse_args()
 
     if args.override:
@@ -129,7 +138,7 @@ def main():
             raise ValueError("You must specify an output file path if not overriding the input file.")
         if os.path.abspath(args.input) == os.path.abspath(args.output):
             raise ValueError("Input and output file paths are the same. Use --override or specify a different output path.")
-        process_file(args.input, args.workspace, args.libero_folder, args.output)
+        process_file(args.input, args.workspace, args.libero_folder, args.output, args.bddl_file)
 
 if __name__ == "__main__":
     main()

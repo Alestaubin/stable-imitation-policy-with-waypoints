@@ -160,7 +160,6 @@ def dp_waypoint_selection(
         gt_states = copy.deepcopy(actions)
         
     num_frames = len(actions)
-
     # make the last frame a waypoint
     initial_waypoints = [num_frames - 1]
 
@@ -191,7 +190,6 @@ def dp_waypoint_selection(
     if err_threshold < min_error:
         logger.info("Error threshold is too small, returning all points as waypoints.")
         return list(range(1, num_frames))
-
     # Populate the memoization table using an iterative bottom-up approach
     for i in range(1, num_frames):
         min_waypoints_required = float("inf")
@@ -309,16 +307,17 @@ def main(args):
         except:
             logger.info("No absolute actions found, need to convert first.")
             raise NotImplementedError
+        # segment actions
+        #actions = np.array_split(actions, traj_len // 100 + 1)
 
-        waypoint_selection = dp_waypoint_selection
-
-        waypoints = waypoint_selection(
-            actions=actions,
-            gt_states=gt_states,
-            err_threshold=args.err_threshold,
-            initial_states=initial_states,
-        )
-
+        waypoints = dp_waypoint_selection(
+                actions=actions,
+                gt_states=gt_states,
+                err_threshold=args.err_threshold,
+                initial_states=initial_states,
+                pos_only=False,
+            )
+        #waypoints = np.concatenate(waypoints)
         num_waypoints.append(len(waypoints))
         num_frames.append(traj_len)
 

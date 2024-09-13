@@ -61,6 +61,7 @@ def load_hdf5_data(
     f = h5py.File(dataset, 'r')
 
     demo_waypoints = f[f'data/demo_{demo_id}/{waypoints_dataset_name}']
+    #print("demo_waypoints", demo_waypoints)
 
     subgoals = f[f'data/demo_{demo_id}/{subgoals_dataset_name}']
 
@@ -93,6 +94,7 @@ def load_hdf5_data(
 
     f.close()
     # convert to numpy arrays and return
+
     return np.array(pos_data), np.array(vel_data), np.array(gripper_data), np.array(euler_data)
 
 
