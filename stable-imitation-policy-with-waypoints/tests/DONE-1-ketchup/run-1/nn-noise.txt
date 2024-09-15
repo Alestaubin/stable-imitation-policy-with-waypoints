@@ -1,0 +1,626 @@
+(CVXPY) Sep 13 08:21:01 PM: Encountered unexpected exception importing solver OSQP:
+ImportError("dlopen(/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/qdldl.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_symperm'")
+Using LASA DataSet from /opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/pyLasaDataset/resources/LASAHandwritingDataset/DataSet
+INFO - imitate-task.py - 145 - 2024-09-13 20:21:02,450 - No AWE waypoints provided, using entire trajectory to train the model.
+INFO - imitate-task.py - 189 - 2024-09-13 20:21:02,450 - Data loaded from /Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/square/image_demo_local.hdf5.
+INFO - imitate-task.py - 232 - 2024-09-13 20:21:02,451 - Loading model waypoint-test-nn-subgoal0-13-09-17-59
+INFO - learn_nn_ds.py - 65 - 2024-09-13 20:21:02,451 - Switching to cpu for computation
+INFO - learn_nn_ds.py - 79 - 2024-09-13 20:21:02,452 - NN network initialized
+/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/lib/learn_nn_ds.py:241: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.__nn_module = torch.load(os.path.join(dir, f'{self.__network_type}',
+INFO - imitate-task.py - 253 - 2024-09-13 20:21:02,454 - Starting playback...
+INFO: Probing, EGL cannot run on this device
+writing video to  videos/13-09-20-21/rollout.mp4
+
+============= Initialized Observation Utils with Obs Spec =============
+
+using obs modality: low_dim with keys: ['robot0_eef_pos']
+using obs modality: rgb with keys: []
+Created environment with name NutAssemblySquare
+Action size is 7
+=======================================================================================
+ENV: NutAssemblySquare
+{
+    "camera_depths": false,
+    "camera_heights": 84,
+    "camera_names": [
+        "agentview",
+        "robot0_eye_in_hand"
+    ],
+    "camera_widths": 84,
+    "control_freq": 20,
+    "controller_configs": {
+        "control_delta": true,
+        "damping": 1,
+        "damping_limits": [
+            0,
+            10
+        ],
+        "impedance_mode": "fixed",
+        "input_max": 1,
+        "input_min": -1,
+        "interpolation": "linear",
+        "kp": 150,
+        "kp_limits": [
+            0,
+            300
+        ],
+        "orientation_limits": null,
+        "output_max": [
+            0.05,
+            0.05,
+            0.05,
+            0.5,
+            0.5,
+            0.5
+        ],
+        "output_min": [
+            -0.05,
+            -0.05,
+            -0.05,
+            -0.5,
+            -0.5,
+            -0.5
+        ],
+        "position_limits": null,
+        "ramp_ratio": 0.2,
+        "type": "OSC_POSE",
+        "uncouple_pos_ori": true
+    },
+    "has_offscreen_renderer": true,
+    "has_renderer": false,
+    "ignore_done": true,
+    "render_gpu_device_id": 0,
+    "reward_shaping": false,
+    "robots": [
+        "Panda"
+    ],
+    "use_camera_obs": false,
+    "use_object_obs": true
+}
+INFO - playback_robomimic.py - 89 - 2024-09-13 20:21:03,302 - Using slerp with 50 steps for orientation control
+INFO - playback_robomimic.py - 107 - 2024-09-13 20:21:03,302 - Rollout 0
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:04,665 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-2.8635225   0.38062164  2.0392387 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:04,665 - Distance to subgoal 0: 0.1394595194800036, Action number: 25, Current euler: [-2.8635225   0.38062164  2.0392387 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:04,665 - Action: [-0.10672282  0.02344292 -0.68837762 -0.1669158   0.11207858  0.14858501
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:04,665 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:04,922 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-2.2612934   0.34532806  2.733974  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:04,922 - Distance to subgoal 0: 0.09811717744679868, Action number: 50, Current euler: [-2.2612934   0.34532806  2.733974  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:04,922 - Action: [-0.16728321 -0.05016571 -0.60268277 -0.18376108  0.06635886  0.15597554
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:04,922 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:05,256 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8873569   0.24654476 -3.1374485 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:05,256 - Distance to subgoal 0: 0.11556875547693725, Action number: 75, Current euler: [-1.8873569   0.24654476 -3.1374485 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:05,256 - Action: [-0.14937177 -0.0460743  -0.70596772 -0.10127075 -0.08544411  0.12134193
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:05,256 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:05,589 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.863768   0.2300791 -3.086392 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:05,589 - Distance to subgoal 0: 0.11717920335169231, Action number: 100, Current euler: [-1.863768   0.2300791 -3.086392 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:05,589 - Action: [-0.1473937  -0.04714193 -0.67180812 -0.07366355 -0.10513882  0.07721094
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:05,589 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:05,914 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8610876   0.22328831 -3.062554  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:05,914 - Distance to subgoal 0: 0.11646925688378378, Action number: 125, Current euler: [-1.8610876   0.22328831 -3.062554  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:05,914 - Action: [-0.15422873 -0.05217445 -0.63261741 -0.06811075 -0.11336879  0.05436512
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:05,914 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:06,244 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8539463   0.22953303 -3.042952  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:06,244 - Distance to subgoal 0: 0.11568607444169668, Action number: 150, Current euler: [-1.8539463   0.22953303 -3.042952  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:06,244 - Action: [-0.16240223 -0.05699171 -0.57162511 -0.05969097 -0.10769436  0.03585371
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:06,244 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:06,589 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.852797    0.22097023 -3.0291119 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:06,589 - Distance to subgoal 0: 0.11531364816812806, Action number: 175, Current euler: [-1.852797    0.22097023 -3.0291119 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:06,589 - Action: [-0.16258189 -0.0767188  -0.69404674 -0.05620046 -0.11686422  0.0226966
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:06,589 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:06,940 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8485862   0.21804538 -3.0199742 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:06,940 - Distance to subgoal 0: 0.11502396708879364, Action number: 200, Current euler: [-1.8485862   0.21804538 -3.0199742 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:06,940 - Action: [-0.14297661 -0.04514939 -0.58826077 -0.05081696 -0.11972532  0.0145605
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:06,940 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:07,279 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8428823   0.22243091 -3.0116246 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:07,279 - Distance to subgoal 0: 0.11464167628908747, Action number: 225, Current euler: [-1.8428823   0.22243091 -3.0116246 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:07,279 - Action: [-0.13220516 -0.0253845  -0.56365728 -0.04497979 -0.11502199  0.00717255
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:07,280 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:07,624 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8396174   0.22272323 -3.0055778 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:07,624 - Distance to subgoal 0: 0.11445667459635499, Action number: 250, Current euler: [-1.8396174   0.22272323 -3.0055778 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:07,624 - Action: [-0.14813332 -0.04262362 -0.5771808  -0.04124529 -0.11454022  0.0017853
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:07,624 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:07,946 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8346003   0.22826973 -3.0005841 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:07,946 - Distance to subgoal 0: 0.11426123331253699, Action number: 275, Current euler: [-1.8346003   0.22826973 -3.0005841 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:07,946 - Action: [-0.13469283 -0.02948398 -0.49045324 -0.03670763 -0.10852724 -0.0023497
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:07,946 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:08,257 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8349963   0.22431123 -2.9979122 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:08,257 - Distance to subgoal 0: 0.11424784370767642, Action number: 300, Current euler: [-1.8349963   0.22431123 -2.9979122 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:08,257 - Action: [-0.13595052 -0.03671782 -0.55906326 -0.03623787 -0.11259848 -0.00497984
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:08,258 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:08,564 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8345764   0.22333054 -2.996009  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:08,565 - Distance to subgoal 0: 0.11428661132839671, Action number: 325, Current euler: [-1.8345764   0.22333054 -2.996009  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:08,565 - Action: [-0.13856947 -0.05024887 -0.72285277 -0.0354896  -0.11357422 -0.00676725
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:08,565 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:08,868 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8363298   0.21894361 -2.9938402 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:08,868 - Distance to subgoal 0: 0.11429743247260632, Action number: 350, Current euler: [-1.8363298   0.21894361 -2.9938402 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:08,868 - Action: [-0.11775488  0.00125269 -0.4821358  -0.03626292 -0.11825271 -0.0091706
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:08,868 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:09,171 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8342463  0.2237781 -2.9921181]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:09,171 - Distance to subgoal 0: 0.11427128845035361, Action number: 375, Current euler: [-1.8342463  0.2237781 -2.9921181], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:09,171 - Action: [-0.12188089 -0.01924331 -0.55428463 -0.03480053 -0.11321866 -0.0106247
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:09,171 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:09,481 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.83418     0.22399005 -2.9911933 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:09,481 - Distance to subgoal 0: 0.1142488856653728, Action number: 400, Current euler: [-1.83418     0.22399005 -2.9911933 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:09,481 - Action: [-0.14666328 -0.03647767 -0.62165141 -0.03466409 -0.11303117 -0.01154777
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:09,481 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:09,779 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8318874   0.23008825 -2.990283  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:09,779 - Distance to subgoal 0: 0.11423535209425027, Action number: 425, Current euler: [-1.8318874   0.23008825 -2.990283  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:09,779 - Action: [-0.14834701 -0.03895565 -0.58446705 -0.03330479 -0.1066836  -0.01216173
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:09,779 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:10,079 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8341863   0.22483326 -2.9902854 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:10,079 - Distance to subgoal 0: 0.11434722371558981, Action number: 450, Current euler: [-1.8341863   0.22483326 -2.9902854 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:10,079 - Action: [-0.15412384 -0.06025512 -0.63043392 -0.03469084 -0.11223049 -0.01249138
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:10,079 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:10,391 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8338665  0.2258799 -2.9899874]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:10,391 - Distance to subgoal 0: 0.11441339139972119, Action number: 475, Current euler: [-1.8338665  0.2258799 -2.9899874], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:10,391 - Action: [-0.15653467 -0.04543162 -0.52415681 -0.03451098 -0.11115729 -0.01275687
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:10,391 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:10,694 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.834075   0.2268987 -2.9902759]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:10,694 - Distance to subgoal 0: 0.11444823578400784, Action number: 500, Current euler: [-1.834075   0.2268987 -2.9902759], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:10,694 - Action: [-0.13376644 -0.02999683 -0.45102328 -0.03488863 -0.110173   -0.01254793
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:10,694 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:10,990 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8333942   0.22950444 -2.9905047 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:10,990 - Distance to subgoal 0: 0.11450388995890692, Action number: 525, Current euler: [-1.8333942   0.22950444 -2.9905047 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:10,990 - Action: [-0.14098252 -0.03981628 -0.54520941 -0.03465718 -0.10748541 -0.01225657
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:10,990 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:11,293 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8364782   0.22278336 -2.9899423 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:11,293 - Distance to subgoal 0: 0.11462193346490977, Action number: 550, Current euler: [-1.8364782   0.22278336 -2.9899423 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:11,293 - Action: [-0.1513132  -0.03635481 -0.48847371 -0.03650329 -0.11462296 -0.01326344
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:11,293 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:11,591 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8355762   0.22517547 -2.9895148 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:11,591 - Distance to subgoal 0: 0.11460799109362467, Action number: 575, Current euler: [-1.8355762   0.22517547 -2.9895148 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:11,591 - Action: [-0.14393781 -0.05274608 -0.72251433 -0.03595962 -0.11213519 -0.01358295
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:11,591 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:11,885 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8338572   0.22828059 -2.9889104 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:11,885 - Distance to subgoal 0: 0.11464515857145316, Action number: 600, Current euler: [-1.8338572   0.22828059 -2.9889104 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:11,885 - Action: [-0.13201074 -0.03625992 -0.64232016 -0.03473816 -0.10882158 -0.0139203
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:11,885 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:12,207 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8353833   0.22512193 -2.9888442 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:12,207 - Distance to subgoal 0: 0.11470329073603455, Action number: 625, Current euler: [-1.8353833   0.22512193 -2.9888442 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:12,207 - Action: [-0.13486175 -0.03369078 -0.38785139 -0.03569512 -0.11218203 -0.01421324
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:12,207 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:12,507 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8308916   0.23522852 -2.988551  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:12,507 - Distance to subgoal 0: 0.11465368083626772, Action number: 650, Current euler: [-1.8308916   0.23522852 -2.988551  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:12,507 - Action: [-0.15013622 -0.05900162 -0.53263587 -0.03295129 -0.10150849 -0.01384569
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:12,507 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:12,803 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8343108   0.22740737 -2.9885473 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:12,803 - Distance to subgoal 0: 0.11480567991697979, Action number: 675, Current euler: [-1.8343108   0.22740737 -2.9885473 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:12,803 - Action: [-0.14744164 -0.04833414 -0.51687038 -0.03499442 -0.10976757 -0.01435575
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:12,803 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:13,116 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8327433   0.23184314 -2.988904  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:13,116 - Distance to subgoal 0: 0.11480181844376525, Action number: 700, Current euler: [-1.8327433   0.23184314 -2.988904  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:13,116 - Action: [-0.14951403 -0.03545719 -0.58236605 -0.034221   -0.10512918 -0.01379925
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:13,116 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:13,418 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8369312   0.21994936 -2.9881527 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:13,418 - Distance to subgoal 0: 0.1150516584904522, Action number: 725, Current euler: [-1.8369312   0.21994936 -2.9881527 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:13,418 - Action: [-0.14080919 -0.05020179 -0.60785741 -0.0363015  -0.11755805 -0.01505892
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:13,418 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:13,713 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.838144    0.21815738 -2.988224  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:13,713 - Distance to subgoal 0: 0.11507589177474398, Action number: 750, Current euler: [-1.838144    0.21815738 -2.988224  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:13,713 - Action: [-0.13498501 -0.02582104 -0.44323787 -0.03718317 -0.11951561 -0.01518018
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:13,713 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:14,024 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.836478    0.22191846 -2.9882603 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:14,024 - Distance to subgoal 0: 0.11508805647475695, Action number: 775, Current euler: [-1.836478    0.22191846 -2.9882603 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:14,024 - Action: [-0.13542455 -0.0396679  -0.64918339 -0.03618098 -0.11553833 -0.01492425
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:14,024 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:14,324 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8345137  0.2265924 -2.9881108]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:14,324 - Distance to subgoal 0: 0.11512747096627454, Action number: 800, Current euler: [-1.8345137  0.2265924 -2.9881108], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:14,324 - Action: [-0.139506   -0.04040623 -0.4871366  -0.03501529 -0.11061952 -0.01481118
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:14,324 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:14,622 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8358909   0.22358572 -2.9884603 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:14,622 - Distance to subgoal 0: 0.11523018257522663, Action number: 825, Current euler: [-1.8358909   0.22358572 -2.9884603 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:14,622 - Action: [-0.14429371 -0.04019675 -0.45420942 -0.03590032 -0.11379246 -0.01465549
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:14,622 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:14,929 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8341159   0.22696973 -2.988183  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:14,929 - Distance to subgoal 0: 0.11525849347880134, Action number: 850, Current euler: [-1.8341159   0.22696973 -2.988183  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:14,929 - Action: [-0.14187261 -0.02979448 -0.67789751 -0.03470614 -0.11018201 -0.01466376
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:14,929 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:15,222 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8351948   0.22407092 -2.9878986 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:15,222 - Distance to subgoal 0: 0.11533646358177765, Action number: 875, Current euler: [-1.8351948   0.22407092 -2.9878986 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:15,222 - Action: [-0.16222478 -0.06451396 -0.65597522 -0.03525498 -0.1132241  -0.01508596
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:15,222 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:15,520 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8344568   0.22594629 -2.9878902 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:15,521 - Distance to subgoal 0: 0.11538325946804638, Action number: 900, Current euler: [-1.8344568   0.22594629 -2.9878902 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:15,521 - Action: [-0.14071095 -0.03545028 -0.64008772 -0.034841   -0.11125642 -0.01499798
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:15,521 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:15,825 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8334055   0.22860827 -2.987783  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:15,825 - Distance to subgoal 0: 0.11539215546237827, Action number: 925, Current euler: [-1.8334055   0.22860827 -2.987783  ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:15,825 - Action: [-0.14669663 -0.0583331  -0.66604596 -0.03424016 -0.10846617 -0.01496452
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:15,825 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:16,125 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8321546   0.23100972 -2.9877002 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:16,126 - Distance to subgoal 0: 0.11543864282962774, Action number: 950, Current euler: [-1.8321546   0.23100972 -2.9877002 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:16,126 - Action: [-0.13376355 -0.04277806 -0.58800572 -0.03341701 -0.10590106 -0.01484834
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:16,126 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:16,450 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8322712   0.23077814 -2.9876719 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:16,450 - Distance to subgoal 0: 0.11548756102691633, Action number: 975, Current euler: [-1.8322712   0.23077814 -2.9876719 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:16,450 - Action: [-0.15287618 -0.05107182 -0.61584109 -0.03348868 -0.106149   -0.01489539
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:16,450 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:16,768 - subgoal_euler: [1.36129599 2.81135001 0.15165594], sim_euler: [-1.8339093   0.22750531 -2.9879887 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:16,768 - Distance to subgoal 0: 0.11561720879013927, Action number: 1000, Current euler: [-1.8339093   0.22750531 -2.9879887 ], Subgoal euler: [1.36129599 2.81135001 0.15165594]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:16,768 - Action: [-0.13219327 -0.01709499 -0.51290363 -0.03457069 -0.10962741 -0.01483185
+ -1.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:16,768 - Success: False
+INFO - playback_robomimic.py - 240 - 2024-09-13 20:21:16,768 - subgoal failed
+INFO - playback_robomimic.py - 255 - 2024-09-13 20:21:17,266 - Subgoal 0 distance: 0.11561401010141498
+INFO - playback_robomimic.py - 263 - 2024-09-13 20:21:17,266 - 
+####################################################
+################ Activating gripper ################
+####################################################
+INFO - playback_robomimic.py - 281 - 2024-09-13 20:21:17,523 - Gripper action done.
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:17,769 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [2.8120522  0.40512645 1.5458127 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:17,769 - Distance to subgoal 1: 0.33196236908859483, Action number: 50, Current euler: [2.8120522  0.40512645 1.5458127 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:17,769 - Action: [-0.25407135 -0.12084926 -0.49513856 -0.16675344  0.15700304 -0.10021644
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:17,769 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:18,051 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-3.1153767  0.2542102  1.4645597]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:18,051 - Distance to subgoal 1: 0.3445816243019737, Action number: 75, Current euler: [-3.1153767  0.2542102  1.4645597], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:18,051 - Action: [-0.24401683 -0.09058421 -0.59928423 -0.22692399  0.08401651 -0.06282301
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:18,051 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:18,344 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [3.1294732  0.22026418 1.2546413 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:18,345 - Distance to subgoal 1: 0.3493584133864174, Action number: 100, Current euler: [3.1294732  0.22026418 1.2546413 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:18,345 - Action: [-0.24303348 -0.09763912 -0.56761122 -0.21831638  0.0997198  -0.06995655
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:18,345 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:18,628 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [3.1199472  0.20756143 1.0144776 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:18,629 - Distance to subgoal 1: 0.3548873057992558, Action number: 125, Current euler: [3.1199472  0.20756143 1.0144776 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:18,629 - Action: [-0.25633913 -0.09453254 -0.61388165 -0.20783216  0.11734726 -0.07440036
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:18,629 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:18,917 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [3.099659   0.19740757 0.73580056]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:18,917 - Distance to subgoal 1: 0.3610025333084936, Action number: 150, Current euler: [3.099659   0.19740757 0.73580056], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:18,917 - Action: [-0.22654234 -0.07761594 -0.44782308 -0.19857676  0.12275744 -0.08943088
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:18,917 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:19,218 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [3.090481   0.16601062 0.36316812]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:19,218 - Distance to subgoal 1: 0.3645215683981778, Action number: 175, Current euler: [3.090481   0.16601062 0.36316812], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:19,218 - Action: [-0.24759741 -0.11874678 -0.35832301  0.16657422  0.08775767 -0.16447377
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:19,218 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:19,506 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-2.6681533   0.0628492   0.39611477]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:19,506 - Distance to subgoal 1: 0.36115362579720556, Action number: 200, Current euler: [-2.6681533   0.0628492   0.39611477], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:19,507 - Action: [-0.25357193 -0.09793093 -0.57460308  0.10325878  0.09315514 -0.20774923
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:19,507 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:19,797 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-2.3227482   0.04603525  0.04176705]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:19,798 - Distance to subgoal 1: 0.3650213364365335, Action number: 225, Current euler: [-2.3227482   0.04603525  0.04176705], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:19,798 - Action: [-0.26312903 -0.10210479 -0.5810132   0.08819215  0.07363908 -0.22203475
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:19,798 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:20,097 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-2.068506    0.1978329  -0.58421254]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:20,097 - Distance to subgoal 1: 0.3457484896903788, Action number: 250, Current euler: [-2.068506    0.1978329  -0.58421254], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:20,097 - Action: [-0.2170144  -0.08948359 -0.32055044  0.08893366  0.03196905 -0.23144931
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:20,097 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:20,388 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.7500174   0.34985462 -0.93326396]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:20,388 - Distance to subgoal 1: 0.30416250305181725, Action number: 275, Current euler: [-1.7500174   0.34985462 -0.93326396], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:20,388 - Action: [-0.15788594 -0.037347   -0.35650775  0.07948103  0.00887478 -0.23686284
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:20,388 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:20,671 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.6172166   0.41670743 -1.483998  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:20,671 - Distance to subgoal 1: 0.24916016143679448, Action number: 300, Current euler: [-1.6172166   0.41670743 -1.483998  ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:20,671 - Action: [-0.15844454 -0.04123655 -0.44125178  0.08022444 -0.03047112 -0.2348096
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:20,671 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:20,965 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.3960178  0.5748205 -1.6516598]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:20,965 - Distance to subgoal 1: 0.24467317293808033, Action number: 325, Current euler: [-1.3960178  0.5748205 -1.6516598], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:20,965 - Action: [-0.11774351  0.02611161 -0.34885073  0.06329566 -0.03473691 -0.23934704
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:20,965 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:21,263 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.294391    0.72001696 -1.8305254 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:21,263 - Distance to subgoal 1: 0.2550317551221253, Action number: 350, Current euler: [-1.294391    0.72001696 -1.8305254 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:21,263 - Action: [-0.04500274  0.08796158 -0.47331399  0.04317147 -0.0389931  -0.24313733
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:21,263 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:21,570 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2781954   0.73559093 -2.11469   ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:21,570 - Distance to subgoal 1: 0.2696983182413413, Action number: 375, Current euler: [-1.2781954   0.73559093 -2.11469   ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:21,570 - Action: [ 0.01728711  0.07573513 -0.73644423  0.03604127 -0.05871841 -0.2403189
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:21,570 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:21,881 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.3372267   0.81542116 -2.3225064 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:21,881 - Distance to subgoal 1: 0.28748368584645856, Action number: 400, Current euler: [-1.3372267   0.81542116 -2.3225064 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:21,881 - Action: [-0.03843368  0.02203426 -0.99137729  0.00759082 -0.06999383 -0.23988173
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:21,881 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:22,184 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.3631668   0.89741933 -2.5132143 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:22,184 - Distance to subgoal 1: 0.31096183968538543, Action number: 425, Current euler: [-1.3631668   0.89741933 -2.5132143 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:22,184 - Action: [-0.11907785 -0.00365363 -1.07229495 -0.02548352 -0.06857189 -0.2390575
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:22,184 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:22,484 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2877257  1.0243838 -2.6553218]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:22,484 - Distance to subgoal 1: 0.3475755396850677, Action number: 450, Current euler: [-1.2877257  1.0243838 -2.6553218], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:22,484 - Action: [-0.32772121 -0.09917498 -1.29111147 -0.05901455 -0.027103   -0.24141812
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:22,484 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:22,795 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.1832014  1.0970131 -2.7298462]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:22,795 - Distance to subgoal 1: 0.415845233355119, Action number: 475, Current euler: [-1.1832014  1.0970131 -2.7298462], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:22,795 - Action: [-0.78492111 -0.27113166 -1.59229505 -0.07219726  0.02652636 -0.23787372
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:22,795 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:23,107 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.0982344   0.99801517 -3.0620778 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:23,107 - Distance to subgoal 1: 0.5551060583505704, Action number: 500, Current euler: [-1.0982344   0.99801517 -3.0620778 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:23,108 - Action: [-1.66042197 -0.67284918 -2.21221399 -0.04917096 -0.00591653  0.0025311
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:23,108 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:23,430 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.1697277  1.0141159  3.057044 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:23,430 - Distance to subgoal 1: 0.6074154206046326, Action number: 525, Current euler: [-1.1697277  1.0141159  3.057044 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:23,430 - Action: [-1.83889663 -0.78965586 -2.54082942 -0.08685652  0.01730377  0.10483056
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:23,430 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:23,754 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2297219  0.9653641  3.0139518]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:23,754 - Distance to subgoal 1: 0.6149628044971934, Action number: 550, Current euler: [-1.2297219  0.9653641  3.0139518], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:23,754 - Action: [-2.05696535 -0.89498979 -2.6283772  -0.12475717 -0.02815996  0.10254647
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:23,754 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:24,062 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2346617  0.9615886  3.0116534]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:24,062 - Distance to subgoal 1: 0.6150274068404634, Action number: 575, Current euler: [-1.2346617  0.9615886  3.0116534], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:24,063 - Action: [-1.96280897 -0.83704305 -2.47138715 -0.12799824 -0.03173673  0.10122808
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:24,063 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:24,373 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2370044  0.9591262  3.0111082]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:24,373 - Distance to subgoal 1: 0.6150769977657873, Action number: 600, Current euler: [-1.2370044  0.9591262  3.0111082], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:24,373 - Action: [-1.98075497 -0.86163664 -2.55345035 -0.12961418 -0.03416171  0.10015577
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:24,373 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:24,698 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2362665   0.95966846  3.0106807 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:24,699 - Distance to subgoal 1: 0.6154131757823315, Action number: 625, Current euler: [-1.2362665   0.95966846  3.0106807 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:24,699 - Action: [-1.94653237 -0.83088839 -2.4758184  -0.12915609 -0.03355017  0.10111716
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:24,699 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:25,008 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2351528  0.9604626  3.01028  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:25,008 - Distance to subgoal 1: 0.6157784134178665, Action number: 650, Current euler: [-1.2351528  0.9604626  3.01028  ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:25,008 - Action: [-1.93588662 -0.82847106 -2.53235245 -0.12845925 -0.03268347  0.10232966
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:25,008 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:25,316 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2340506  0.9613466  3.009836 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:25,316 - Distance to subgoal 1: 0.6161414142527891, Action number: 675, Current euler: [-1.2340506  0.9613466  3.009836 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:25,316 - Action: [-1.8963145  -0.83009499 -2.59875226 -0.12775723 -0.03172427  0.1035653
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:25,316 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:25,631 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2331167  0.962134   3.0092854]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:25,631 - Distance to subgoal 1: 0.6164958186694914, Action number: 700, Current euler: [-1.2331167  0.962134   3.0092854], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:25,631 - Action: [-2.17437625 -0.932621   -2.57318282 -0.12716199 -0.0308525   0.10478141
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:25,631 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:25,942 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2330883  0.9623496  3.0082664]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:25,942 - Distance to subgoal 1: 0.6168368041258462, Action number: 725, Current euler: [-1.2330883  0.9623496  3.0082664], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:25,942 - Action: [-2.01369619 -0.8628056  -2.55634046 -0.12714821 -0.03051049  0.10578902
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:25,943 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:26,248 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2325939   0.96265084  3.007688  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:26,248 - Distance to subgoal 1: 0.6171485329923905, Action number: 750, Current euler: [-1.2325939   0.96265084  3.007688  ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:26,248 - Action: [-1.77895224 -0.7786485  -2.58089495 -0.12685669 -0.03012702  0.10673257
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:26,248 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:26,567 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2319702   0.96310335  3.007138  ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:26,567 - Distance to subgoal 1: 0.6174670978732382, Action number: 775, Current euler: [-1.2319702   0.96310335  3.007138  ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:26,568 - Action: [-1.97684324 -0.87183911 -2.67006993 -0.12647307 -0.02959528  0.10773587
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:26,568 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:26,874 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.232799   0.962711   3.0058682]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:26,875 - Distance to subgoal 1: 0.6177599759084036, Action number: 800, Current euler: [-1.232799   0.962711   3.0058682], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:26,875 - Action: [-1.92579639 -0.80980664 -2.45506787 -0.1270136  -0.02984321  0.10836194
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:26,879 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:27,185 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2331206  0.9622689  3.005306 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:27,185 - Distance to subgoal 1: 0.6179907208345524, Action number: 825, Current euler: [-1.2331206  0.9622689  3.005306 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:27,186 - Action: [-1.95093048 -0.8477127  -2.59679008 -0.12726604 -0.03021514  0.10871043
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:27,186 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:27,516 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2330745  0.9622309  3.0047126]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:27,516 - Distance to subgoal 1: 0.6182632115289959, Action number: 850, Current euler: [-1.2330745  0.9622309  3.0047126], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:27,516 - Action: [-2.08388829 -0.90612173 -2.56712508 -0.12726422 -0.03017589  0.10934202
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:27,516 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:27,829 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2332064  0.9622124  3.0039074]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:27,830 - Distance to subgoal 1: 0.6185485644171386, Action number: 875, Current euler: [-1.2332064  0.9622124  3.0039074], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:27,830 - Action: [-1.90273428 -0.83037251 -2.574435   -0.12736229 -0.03009538  0.11003468
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:27,830 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:28,140 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2328026  0.9624294  3.0034416]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:28,140 - Distance to subgoal 1: 0.6188325914366042, Action number: 900, Current euler: [-1.2328026  0.9624294  3.0034416], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:28,140 - Action: [-2.00399852 -0.84884739 -2.45808935 -0.12712685 -0.02981247  0.11080249
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:28,140 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:28,457 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2324255   0.96281785  3.0028102 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:28,457 - Distance to subgoal 1: 0.6191309614230456, Action number: 925, Current euler: [-1.2324255   0.96281785  3.0028102 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:28,457 - Action: [-2.17993569 -0.93538463 -2.66800952 -0.12688607 -0.02934117  0.11169122
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:28,457 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:28,766 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.232313   0.9627984  3.0022461]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:28,767 - Distance to subgoal 1: 0.619397225311042, Action number: 950, Current euler: [-1.232313   0.9627984  3.0022461], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:28,767 - Action: [-1.95228755 -0.82045084 -2.49884605 -0.12684437 -0.02928604  0.11234615
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:28,767 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:29,075 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2321216  0.9629755  3.0016215]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:29,075 - Distance to subgoal 1: 0.6196769245599758, Action number: 975, Current euler: [-1.2321216  0.9629755  3.0016215], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:29,075 - Action: [-1.7865411  -0.77843833 -2.60242414 -0.12673346 -0.02902833  0.11310176
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:29,075 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:29,389 - subgoal_euler: [2.13476711 2.14348501 0.15873824], sim_euler: [-1.2313422  0.9635202  3.001274 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:29,389 - Distance to subgoal 1: 0.6199712934113065, Action number: 1000, Current euler: [-1.2313422  0.9635202  3.001274 ], Subgoal euler: [2.13476711 2.14348501 0.15873824]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:29,389 - Action: [-2.01427388 -0.86908388 -2.63863707 -0.12624323 -0.02843036  0.11402134
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:29,389 - Success: False
+INFO - playback_robomimic.py - 240 - 2024-09-13 20:21:29,389 - subgoal failed
+INFO - playback_robomimic.py - 255 - 2024-09-13 20:21:29,870 - Subgoal 1 distance: 0.6199822791473493
+INFO - playback_robomimic.py - 263 - 2024-09-13 20:21:29,871 - 
+####################################################
+################ Activating gripper ################
+####################################################
+INFO - playback_robomimic.py - 281 - 2024-09-13 20:21:30,117 - Gripper action done.
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:30,363 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-3.0247774   0.48857793  1.6766529 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:30,363 - Distance to subgoal 2: 0.11680976811870056, Action number: 50, Current euler: [-3.0247774   0.48857793  1.6766529 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:30,363 - Action: [ 0.00137733 -0.09168196 -0.63956666 -0.22166331  0.10697392 -0.04384015
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:30,363 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:30,658 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-2.5992916  0.8234211  2.040409 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:30,659 - Distance to subgoal 2: 0.07674054326555159, Action number: 75, Current euler: [-2.5992916  0.8234211  2.040409 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:30,659 - Action: [ 0.00626183 -0.07968038 -0.59201759 -0.23596141  0.06286796 -0.05357082
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:30,659 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:30,953 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-2.5187109  1.1036407  2.162838 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:30,953 - Distance to subgoal 2: 0.06416929659724169, Action number: 100, Current euler: [-2.5187109  1.1036407  2.162838 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:30,954 - Action: [-0.01349991 -0.04923724 -0.5133909  -0.21168436  0.08641668 -0.10110335
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:30,954 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:31,242 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.8428725  1.2230549  2.7588212]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:31,242 - Distance to subgoal 2: 0.06958147986041587, Action number: 125, Current euler: [-1.8428725  1.2230549  2.7588212], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:31,242 - Action: [-0.04869004  0.0048263  -0.39821914 -0.18672467  0.10900262 -0.12550827
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:31,242 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:31,524 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.1757388  1.0396001 -3.0230424]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:31,524 - Distance to subgoal 2: 0.1081697416193788, Action number: 150, Current euler: [-1.1757388  1.0396001 -3.0230424], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:31,524 - Action: [-0.01487204  0.09576956 -0.15643059 -0.10179168  0.04317852 -0.09893904
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:31,524 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:31,824 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0845395  0.992329  -3.0013685]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:31,824 - Distance to subgoal 2: 0.12531824464994473, Action number: 175, Current euler: [-1.0845395  0.992329  -3.0013685], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:31,824 - Action: [-0.02974867  0.10456528 -0.21222195 -0.04656754  0.00678495 -0.04021292
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:31,824 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:32,114 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0716115  0.9885388 -2.9976952]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:32,114 - Distance to subgoal 2: 0.12704331337502714, Action number: 200, Current euler: [-1.0716115  0.9885388 -2.9976952], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:32,114 - Action: [-0.03097234  0.07767413 -0.1563991  -0.03897319  0.00434435 -0.0329639
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:32,114 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:32,414 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0669504  0.9871542 -2.9964967]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:32,414 - Distance to subgoal 2: 0.12809153714939422, Action number: 225, Current euler: [-1.0669504  0.9871542 -2.9964967], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:32,414 - Action: [-0.00014344  0.08783571 -0.10881082 -0.03622405  0.00344557 -0.03023543
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:32,414 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:32,720 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.062504   0.9858424 -2.994366 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:32,720 - Distance to subgoal 2: 0.12890093399369737, Action number: 250, Current euler: [-1.062504   0.9858424 -2.994366 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:32,720 - Action: [-0.00627638  0.09647583 -0.1400432  -0.03360163  0.00256064 -0.02862557
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:32,720 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:33,015 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0596956  0.9846241 -2.9897206]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:33,016 - Distance to subgoal 2: 0.1296158616885759, Action number: 275, Current euler: [-1.0596956  0.9846241 -2.9897206], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:33,016 - Action: [-0.0374422   0.08868229 -0.20150977 -0.03188991  0.00151225 -0.03089725
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:33,016 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:33,317 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0594068   0.98408604 -2.9907603 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:33,317 - Distance to subgoal 2: 0.13081206750210547, Action number: 300, Current euler: [-1.0594068   0.98408604 -2.9907603 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:33,317 - Action: [-0.01204372  0.10880146 -0.17975968 -0.03164911  0.00104537 -0.02960144
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:33,317 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:33,622 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0546366  0.9832293 -2.986305 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:33,623 - Distance to subgoal 2: 0.13243711807256672, Action number: 325, Current euler: [-1.0546366  0.9832293 -2.986305 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:33,623 - Action: [-0.01757355  0.07479141 -0.11588618 -0.02890719  0.00058708 -0.0300718
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:33,623 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:33,916 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0545242  0.9828726 -2.9879432]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:33,916 - Distance to subgoal 2: 0.13408669702716233, Action number: 350, Current euler: [-1.0545242  0.9828726 -2.9879432], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:33,916 - Action: [ 0.00880691  0.08084688 -0.09112612 -0.02878996  0.00029433 -0.02833091
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:33,916 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:34,223 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0513415   0.98255605 -2.9850292 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:34,223 - Distance to subgoal 2: 0.13572845805281566, Action number: 375, Current euler: [-1.0513415   0.98255605 -2.9850292 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:34,224 - Action: [-0.02979235  0.07445341 -0.14367056 -0.02699669  0.00024694 -0.02859566
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:34,224 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:34,530 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0504715  0.9821722 -2.985962 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:34,530 - Distance to subgoal 2: 0.1377396107955353, Action number: 400, Current euler: [-1.0504715  0.9821722 -2.985962 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:34,530 - Action: [ 1.35972444e-02  6.92949668e-02 -7.33705834e-02 -2.64598001e-02
+ -1.28039133e-05 -2.69317623e-02  0.00000000e+00]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:34,530 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:34,825 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0508541   0.98213387 -2.9844964 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:34,826 - Distance to subgoal 2: 0.1393724428106322, Action number: 425, Current euler: [-1.0508541   0.98213387 -2.9844964 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:34,826 - Action: [ 0.03946317  0.05128106 -0.0589874  -0.02666351 -0.00013109 -0.02871297
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:34,826 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:35,114 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0484747   0.98199314 -2.9839041 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:35,115 - Distance to subgoal 2: 0.14183957812869039, Action number: 450, Current euler: [-1.0484747   0.98199314 -2.9839041 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:35,115 - Action: [ 2.25812104e-02  6.54770210e-02 -7.23140314e-02 -2.53365876e-02
+ -2.69426437e-05 -2.73286075e-02  0.00000000e+00]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:35,115 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:35,418 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0476475  0.9817958 -2.9838433]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:35,419 - Distance to subgoal 2: 0.14326470252325713, Action number: 475, Current euler: [-1.0476475  0.9817958 -2.9838433], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:35,419 - Action: [-0.02546339  0.03725799 -0.11176074 -0.02485188 -0.00013391 -0.02669867
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:35,419 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:35,718 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0491741  0.9819127 -2.9851758]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:35,719 - Distance to subgoal 2: 0.14443564871088627, Action number: 500, Current euler: [-1.0491741  0.9819127 -2.9851758], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:35,719 - Action: [ 0.03304862  0.03749156 -0.05469833 -0.02570773 -0.00014952 -0.02663514
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:35,719 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:36,014 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0470313   0.98177797 -2.9842863 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:36,014 - Distance to subgoal 2: 0.14582409493627913, Action number: 525, Current euler: [-1.0470313   0.98177797 -2.9842863 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:36,014 - Action: [ 6.02753414e-03  8.53542238e-02 -9.81127992e-02 -2.45111046e-02
+ -7.42390199e-05 -2.57445097e-02  0.00000000e+00]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:36,014 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:36,317 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0492023   0.98223853 -2.9845312 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:36,317 - Distance to subgoal 2: 0.1466183216450214, Action number: 550, Current euler: [-1.0492023   0.98223853 -2.9845312 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:36,317 - Action: [ 0.02831053  0.00604661 -0.07536047 -0.02577409  0.00015259 -0.02731132
+  0.        ]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:36,317 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:36,619 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.0478795   0.98196363 -2.9849048 ]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:36,620 - Distance to subgoal 2: 0.14769178198753685, Action number: 575, Current euler: [-1.0478795   0.98196363 -2.9849048 ], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:36,620 - Action: [ 1.55319776e-02  3.53726260e-02 -5.54452166e-02 -2.50054717e-02
+  3.32996307e-05 -2.58340306e-02  0.00000000e+00]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:36,620 - Success: False
+INFO - playback_robomimic.py - 227 - 2024-09-13 20:21:36,909 - subgoal_euler: [2.13789546 2.16401723 0.16754379], sim_euler: [-1.047134   0.9819414 -2.9846208]
+INFO - playback_robomimic.py - 229 - 2024-09-13 20:21:36,909 - Distance to subgoal 2: 0.148539624764092, Action number: 600, Current euler: [-1.047134   0.9819414 -2.9846208], Subgoal euler: [2.13789546 2.16401723 0.16754379]
+INFO - playback_robomimic.py - 230 - 2024-09-13 20:21:36,909 - Action: [ 5.33689447e-02  1.20717566e-02 -5.25663607e-02 -2.45930567e-02
+  8.43188366e-05 -2.54992740e-02  0.00000000e+00]
+INFO - playback_robomimic.py - 231 - 2024-09-13 20:21:36,909 - Success: False
+Traceback (most recent call last):
+  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/imitate-task.py", line 330, in <module>
+    main(args.config)
+  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/imitate-task.py", line 299, in main
+    playback_dataset(
+  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/sim/playback_robomimic.py", line 210, in playback_dataset
+    obs, _, done, _ = env.step(action)
+  File "/Users/alexst-aubin/SummerResearch24/V2/robomimic/robomimic/envs/env_robosuite.py", line 110, in step
+    obs, r, done, info = self.env.step(action)
+  File "/Users/alexst-aubin/SummerResearch24/V2/robosuite/robosuite/environments/base.py", line 393, in step
+    self._pre_action(action, policy_step)
+  File "/Users/alexst-aubin/SummerResearch24/V2/robosuite/robosuite/environments/robot_env.py", line 583, in _pre_action
+    robot.control(robot_action, policy_step=policy_step)
+  File "/Users/alexst-aubin/SummerResearch24/V2/robosuite/robosuite/robots/single_arm.py", line 250, in control
+    torques = self.controller.run_controller()
+  File "/Users/alexst-aubin/SummerResearch24/V2/robosuite/robosuite/controllers/osc.py", line 291, in run_controller
+    self.update()
+  File "/Users/alexst-aubin/SummerResearch24/V2/robosuite/robosuite/controllers/base_controller.py", line 148, in update
+    self.joint_pos = np.array(self.sim.data.qpos[self.qpos_index])
+KeyboardInterrupt

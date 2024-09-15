@@ -252,8 +252,8 @@ def subgoal_selection(dataset_path, start_idx, end_idx, waypoints_dataset_name):
                     if action[-1] != prev_gripper_action:
                         subgoals.append(waypoint_indices[j])
                         prev_gripper_action = action[-1]
-
-                subgoals.append(waypoint_indices[-1]) # last waypoint must be a subgoal 
+                if waypoint_indices[-1] not in subgoals:
+                    subgoals.append(waypoint_indices[-1]) # last waypoint must be a subgoal 
                 logger.info(f"Subgoals for demo_{i}: {subgoals}")
                 # save the subgoals
                 subgoals_dataset_name = str.replace(waypoints_dataset_name, "waypoints", "subgoals")

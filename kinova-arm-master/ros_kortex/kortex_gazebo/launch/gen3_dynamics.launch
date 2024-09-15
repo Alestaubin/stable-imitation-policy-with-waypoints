@@ -1,0 +1,82 @@
+<launch>
+
+    <!-- Arguments -->
+    <!-- Start the GUIs -->
+    <arg name="start_gazebo" default="true"/>
+    <arg name="gazebo_gui"   default="true"/>
+    <arg name="start_rviz" 	 default="false"/>
+    <arg name="world_name"   default="worlds/empty.world"/>
+     
+    <!-- Initial position in Gazebo -->
+    <arg name="x0" default="0"/>
+    <arg name="y0" default="0"/>
+    <arg name="z0" default="0"/>
+
+    <!-- Arm type -->
+    <arg name="arm" 	default="gen3"/>
+    <arg name="dof" 	default="7" /> 		<!-- Number of degrees of freedom of the arm -->    
+    <arg name="vision" 	default="true"/> <!-- True if the arm has a Vision module -->
+    
+    <!-- Default gripper for Gen3 is none, default gripper for Gen3 lite is gen3_lite_2f -->
+    <arg name="gripper" default="" if="$(eval arg('arm') == 'gen3')"/>
+       
+    
+    <arg name="robot_name" default="$(arg arm)"/>
+    <arg name="prefix" default=""/>
+    <arg name="cyclic_data_publish_rate" default="40"/> <!--Hz-->
+
+    <!-- Gazebo parameters -->
+    <arg name="use_sim_time" default="true"/>
+    <arg name="debug" default="false" />
+    <arg name="paused" default="true"/>
+
+    <!-- Start Gazebo -->
+    <include file="$(find kortex_gazebo)/launch/start_gazebo.launch" if="$(arg start_gazebo)">
+        <arg name="gui" value="$(arg gazebo_gui)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="world_name" value="$(arg world_name)"/>
+    </include>
+
+    <!-- Delay before homing the arm -->
+    <arg name="start_delay_seconds" default="10"/>
+
+    <group ns="$(arg robot_name)">
+
+        <!-- Load the description for the robot -->
+        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find kortex_description)/robots/$(arg arm).xacro 
+        	dof:=$(arg dof) vision:=$(arg vision) sim:=true prefix:=$(arg prefix)"
+        />
+       
+       <param name="urdf_file_name" value="$(find kortex_description)/urdf/gen3.urdf"/>
+        <!-- Spawn the robot in Gazebo -->
+        <!-- <rosparam command="load" file="$(find kortex_description)/arms/$(arg arm)/$(arg dof)dof/config/gazebo_initial_joint_positions.yaml"/> -->
+        <!-- <param name="initial_positions" value=""/> TODO -->                
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+            args="-urdf -param robot_description -model $(arg robot_name) -x $(arg x0) -y $(arg y0) -z $(arg z0)
+                -robot_namespace $(arg robot_name)
+                -J joint_1 1.57
+                -J joint_2 0.35
+                -J joint_3 1.57
+                -J joint_4 -1.57
+                -J joint_5 0
+                -J joint_6 -1.00
+                -J joint_7 1.57"/> 
+                
+                
+    		
+		<!-- Start robot state publisher -->
+		<node name="robot_state_publisher" 
+			pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">		    
+	  	</node>
+		  
+        <!-- Individual position controllers are stopped at first -->
+     	<rosparam command="load" file="$(find kortex_gazebo)/config/gen3_joint_group_controller.yaml" />
+	   	<node name="joints_controller" 
+			pkg="controller_manager" type="spawner" respawn="false" output="screen" 
+   			args="joint_state_controller joint_group_effort_controller" /> 
+    
+    </group>
+
+</launch>

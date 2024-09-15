@@ -1,0 +1,85 @@
+<launch>
+
+    <!-- Arguments -->
+    <!-- Start the GUIs -->
+    <arg name="start_gazebo" default="true"/>
+    <arg name="gazebo_gui"   default ="true"/>
+    <arg name="start_rviz" 	default="true"/>
+    <arg name="world_name"   default="$(find kortex_description)/worlds/a7.world"/>
+
+
+    <!-- Initial position in Gazebo -->
+    <arg name="x0" default="0"/>
+    <arg name="y0" default="0"/>
+    <arg name="z0" default="0"/>
+
+    <!-- Arm type -->
+    <arg name="arm" default="gen3"/>
+    <arg name="dof" default="7" />
+    <arg name="vision" default="true"/> <!-- True if the arm has a Vision module -->
+    <arg name="gripper" default="robotiq_2f_85"/>
+
+    <arg name="robot_name" default="$(arg arm)"/>
+    <arg name="prefix" default=""/>
+
+    <arg name="use_sim_time" 	default="true"/>
+    <arg name="debug" 			default="false" />
+    <arg name="paused"		 	default="false"/>
+
+    <!-- Start Gazebo -->
+    <include file="$(find kortex_gazebo)/launch/start_gazebo.launch" if="$(arg start_gazebo)">
+        <arg name="gui" value="$(arg gazebo_gui)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="world_name" value="$(arg world_name)" />
+    </include>
+
+
+    <group ns="$(arg robot_name)">
+
+	<param name="urdf_file_name" value="$(find kortex_description)/urdf/gen3_with_gripper.urdf"/>
+
+        <!-- Load the description for the robot -->
+        <param name="robot_description"
+        	command="$(find xacro)/xacro --inorder $(find kortex_description)/robots/$(arg arm)_$(arg gripper).xacro dof:=$(arg dof) vision:=$(arg vision) sim:=true prefix:=$(arg prefix)"/>
+
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+        args="-urdf -param robot_description -model $(arg robot_name) -x $(arg x0) -y $(arg y0) -z $(arg z0)
+            -robot_namespace $(arg robot_name)
+                -J $(arg prefix)joint_1 1.57
+                -J $(arg prefix)joint_2 0.35
+                -J $(arg prefix)joint_3 3.14
+                -J $(arg prefix)joint_4 -2.00
+                -J $(arg prefix)joint_5 0
+                -J $(arg prefix)joint_6 -1.00
+                -J $(arg prefix)joint_7 1.57
+
+                -J $(arg prefix)finger_joint 0.0
+        		-J $(arg prefix)right_outer_knuckle_joint 0.0
+        		-J $(arg prefix)right_inner_knuckle_joint 0.3
+        		-J $(arg prefix)left_inner_knuckle_joint 0.3
+        		-J $(arg prefix)left_inner_finger_joint 0.3
+        		-J $(arg prefix)right_inner_finger_joint 0.3          " />
+
+	     <!-- Start robot state publisher -->
+        <node name="robot_state_publisher"
+        	pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"
+        />
+
+        <!-- Load controller configuration file from kortex_control package -->
+		<rosparam command="load" file="$(find kortex_description)/arms/$(arg arm)/$(arg dof)dof/config/joint_limits.yaml" subst_value="true"/>
+        <rosparam command="load" file="$(find kortex_description)/arms/$(arg arm)/$(arg dof)dof/config/twist_limits.yaml" subst_value="true"/>
+     	<rosparam command="load" file="$(find kortex_gazebo)/config/gen3_with_fingers.yaml" />
+
+     	<rosparam command="load" file="$(find kortex_description)/grippers/$(arg gripper)/config/joint_limits.yaml" subst_value="true"/>
+   		<rosparam command="load" file="$(find kortex_gazebo)/config/gripper_action_controller.yaml"  subst_value="true"/>
+        <rosparam command="load" file="$(find kortex_control)/grippers/$(arg gripper)/config/gripper_action_controller_parameters.yaml" subst_value="true"/>
+
+        <node name="$(arg prefix)$(arg arm)_controller_spawner"
+        		pkg="controller_manager" type="spawner" respawn="false" output="screen"
+        		args="$(arg prefix)joint_state_controller joint_group_effort_controller finger_group_action_controller"/>
+
+    </group>
+
+</launch>

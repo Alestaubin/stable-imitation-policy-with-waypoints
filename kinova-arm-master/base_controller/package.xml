@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  	<name>base_controller</name>
+  	<version>0.1.0</version>
+  	<description>COMP765</description>
+  	<maintainer email="Anonymous">Anonymous</maintainer>
+  	<license>BSD</license>
+  	<author email="Anonymous">Anonymous</author>
+
+  	<buildtool_depend>catkin</buildtool_depend>
+  	<depend>roscpp</depend>
+  	<depend>sensor_msgs</depend>
+	<depend>geometry_msgs</depend>
+
+	<build_depend>roslint</build_depend>
+	<build_depend>rospy</build_depend>
+	<build_depend>urdf</build_depend>
+
+	<exec_depend>rospy</exec_depend>
+	<exec_depend>urdf</exec_depend>
+</package>

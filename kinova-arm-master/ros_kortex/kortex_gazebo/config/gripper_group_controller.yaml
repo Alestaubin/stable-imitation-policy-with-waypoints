@@ -1,0 +1,28 @@
+ finger_group_position_controller:
+    type: position_controllers/JointGroupPositionController
+    joints:
+      - finger_joint
+      - right_outer_knuckle_joint
+      - right_inner_knuckle_joint
+      - left_inner_knuckle_joint
+      - left_inner_finger_joint
+      - right_inner_finger_joint
+    finger_joint:
+      pid: {p: 10, i: 0.0, d: 0.01}
+    right_outer_knuckle_joint:
+      pid: {p: 10, i: 0.0, d: 0.01}
+    right_inner_knuckle_joint:
+      pid: {p: 10, i: 0.0, d: 0.01}      
+    left_inner_knuckle_joint:
+      pid: {p: 1.0, i: 0.0, d: 0.01}
+    left_inner_finger_joint:
+      pid: {p: 0.5, i: 0.0, d: 0.001}
+    right_inner_finger_joint:
+      pid: {p: 0.5, i: 0.0, d: 0.001}      
+
+robotiq_2f_85_gripper_controller:
+    type: position_controllers/GripperActionController
+    action_monitor_rate: 100
+    joints:
+      - finger_joint
+  

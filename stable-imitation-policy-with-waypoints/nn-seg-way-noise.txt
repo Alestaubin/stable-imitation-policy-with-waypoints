@@ -1,0 +1,39 @@
+Traceback (most recent call last):
+  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/imitate-task.py", line 19, in <module>
+    from lib.learn_ply_ds import PLY_DS
+  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/lib/learn_ply_ds.py", line 7, in <module>
+    import cvxpy as cp
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/__init__.py", line 19, in <module>
+    from cvxpy.atoms import *
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/atoms/__init__.py", line 17, in <module>
+    from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/atoms/affine/binary_operators.py", line 30, in <module>
+    from cvxpy.atoms.affine.add_expr import AddExpression
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/atoms/affine/add_expr.py", line 23, in <module>
+    from cvxpy.atoms.affine.affine_atom import AffAtom
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/atoms/affine/affine_atom.py", line 25, in <module>
+    from cvxpy.cvxcore.python import canonInterface
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/cvxcore/python/canonInterface.py", line 25, in <module>
+    from cvxpy.lin_ops.canon_backend import CanonBackend
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/cvxpy/lin_ops/canon_backend.py", line 25, in <module>
+    from scipy.signal import convolve
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/signal/__init__.py", line 331, in <module>
+    from ._peak_finding import *
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/signal/_peak_finding.py", line 8, in <module>
+    from scipy.stats import scoreatpercentile
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/__init__.py", line 467, in <module>
+    from ._stats_py import *
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/_stats_py.py", line 46, in <module>
+    from . import distributions
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/distributions.py", line 10, in <module>
+    from . import _continuous_distns
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/_continuous_distns.py", line 7084, in <module>
+    powernorm = powernorm_gen(name='powernorm')
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py", line 1928, in __init__
+    self._attach_methods()
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py", line 1963, in _attach_methods
+    self._attach_argparser_methods()
+  File "/opt/miniconda3/envs/learning-ds1/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py", line 699, in _attach_argparser_methods
+    exec(self._parse_arg_template, ns)
+  File "<string>", line 2, in <module>
+KeyboardInterrupt

@@ -1,0 +1,3 @@
+Contributions of all sorts, ranging from code-style to fixing critical bugs are welcome and rewarded throughout the course. To contribute to this repository, you should submit a merge request. Make sure to outline your changes and how they contribute to the objectives of this repository. The pushed code should be clean, well-commented, and comply with standard code-style of either cpp or python. After you submit the merge request, we will evaluate your changes and accept/deny the request. Accepted requests are merged into the repository and will serve as an integral part of future lab codes! 
+
+Positive contribution will have a positive effect on your score, and is very much encouraged!

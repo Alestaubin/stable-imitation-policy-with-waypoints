@@ -46,7 +46,8 @@ def waypoint_policy(learner_type: str,
                     eps: Optional[float] = 0.01,
                     alpha: Optional[float] = 0.01,
                     relaxed: Optional[bool] = False, 
-                    angular: Optional[bool] = False):
+                    angular: Optional[bool] = False, 
+                    save_model: Optional[bool] = True):
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
@@ -97,10 +98,11 @@ def waypoint_policy(learner_type: str,
 
         if model.lpf(waypoint_positions[-1].reshape(1, waypoint_positions.shape[1])) is not None:
             plot_contours(model.lpf, waypoint_positions, save_dir=save_dir, file_name=f'{name}-lpf')
-
-    model.save(model_name=name, dir=save_dir)
-    #torch.save(model, os.path.join(save_dir, name+".pt"))
-    logger.info(f'Model saved as {name} in {save_dir}.')
+    # maybe save the model
+    if save_model:
+        model.save(model_name=name, dir=save_dir)
+        #torch.save(model, os.path.join(save_dir, name+".pt"))
+        logger.info(f'Model saved as {name} in {save_dir}.')
     return model
 
 def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
@@ -108,7 +110,7 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
     waypoint_velocity = subgoal_data["waypoint_linear_velocity"]
     
     # Train a policy for the linear velocity
-    _ = waypoint_policy(
+    model= waypoint_policy(
         config['training']['learner_type'],
         waypoint_positions=waypoint_position,
         waypoint_velocities=waypoint_velocity,
@@ -125,10 +127,11 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         eps=config["snds"]['eps'],
         alpha=config["snds"]['alpha'],
         relaxed=config["snds"]['relaxed'],
-        angular=False
+        angular=False,
+        save_model=config["training"]['save_model']
     )
-
     logger.info(f"Subgoal {subgoal_index} training complete.")
+    return model
 
 def main(config_path):
     with open(config_path, 'r') as file:
@@ -151,11 +154,7 @@ def main(config_path):
             ee_euler = abs_actions[:, 3:6]
             waypoint_gripper_actions = abs_actions[:, -1]
             subgoal_indices = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"][()]
-        #print("ee_pos", ee_pos.shape)
-        #print("ee_vel", ee_vel.shape)
-        #print("ee_euler", ee_euler.shape)
-        #print("waypoint_gripper_actions", waypoint_gripper_actions.shape)
-        #print("subgoal_indices", subgoal_indices)
+
         for i in range(num_subgoals):
             if i == 0:
                 start_idx = 0
@@ -198,7 +197,9 @@ def main(config_path):
         subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
         for i in range(num_subgoals):
             subgoal_info[i]["joint_pos"] = joint_pos[subgoals[i]]
-        
+
+    policies = None
+
     if config["data"]['linear_policies'] is None or config["data"]['model_dir'] is None:
         if not config["training"]["segmentation"]:
             logger.info(f'Training a single policy for the entire trajectory (no segmentation).')
@@ -210,6 +211,7 @@ def main(config_path):
             data = {"subgoal_0":{"waypoint_position": waypoint_positions, "waypoint_linear_velocity": waypoint_velocities, "waypoint_gripper_action": waypoint_gripper_actions, "waypoint_ee_euler": waypoint_ee_eulers}}
             
         # Use multiprocessing to train a policy for each subgoal
+        """
         mp.set_start_method('spawn')  # Must be 'spawn' to avoid issues with CUDA
         ps = []
         # Create and start processes
@@ -225,8 +227,14 @@ def main(config_path):
         for p in ps:
             p.join(timeout=120)  # Add a timeout to avoid indefinite hanging
         
-        return
-    else:
+        return"""
+        policies = []
+        for i in range(len(data.keys())):
+            model = train_policy_for_subgoal(data["subgoal_" + str(i)], config, i)
+            policies.append(model)
+        # Maybe test the model
+        if not config["training"]["test"]: return
+    if policies is None:
         policies = []
         for i, model_name in enumerate(config["data"]['linear_policies']):
             logger.info(f"Loading model {model_name}")
@@ -251,9 +259,15 @@ def main(config_path):
     # maybe playback the rollout in the simulation
     if config["simulation"]['playback']:
         logger.info("Starting playback...")
-        folder_name = time_stamp()
+        config_file_name = args.config.split("/")[-1].split(".")[0]
+        folder_name = time_stamp() + "-" + config_file_name 
         #create a folder with the current time and date in the videos directory
         video_path = f"videos/{folder_name}"
+
+        while os.path.exists(video_path):
+            folder_name += f"-1"
+            video_path = f"videos/{folder_name}"
+        
         if not os.path.exists(video_path):
             os.makedirs(video_path)
         
@@ -309,6 +323,9 @@ def main(config_path):
             perturb_ee_pos=config["simulation"]['perturb_ee_pos'],
             noise_alpha=config["simulation"]['noise_alpha'],
             reset_on_fail=config["simulation"]['reset_on_fail'],
+            video_path=video_path, 
+            grasp_tresh=config["simulation"]['grasp_tresh'],
+            release_tresh=config["simulation"]['release_tresh']
         )
         logger.info(f"Playback complete. Video saved to {video_full_name}")
         
@@ -320,5 +337,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Nonlinear DS experiments CLI interface.')
     parser.add_argument('--config', type=str, required=True, help='Path to the JSON config file.')
     args = parser.parse_args()
-
     main(args.config)
