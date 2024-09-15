@@ -16,7 +16,7 @@
     },
     "simulation":{
         "playback": true,
-        "plot": false,
+        "plot": true,
         "video_skip": 3,
         "video_name": "rollout.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"],
@@ -54,7 +54,7 @@
         "relaxed": false
     },
     "testing":{
-        "num_rollouts": 10,
+        "num_rollouts": 1,
         "max_horizon": 1000,
         "verbose": true
     }

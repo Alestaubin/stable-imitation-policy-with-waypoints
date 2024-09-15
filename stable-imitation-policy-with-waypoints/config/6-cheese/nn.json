@@ -18,7 +18,7 @@
     },
     "simulation":{
         "playback": true,
-        "plot": true,
+        "plot": false,
         "video_skip": 3,
         "video_name": "rollout.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"],
@@ -32,18 +32,18 @@
         "release_tresh": 0.03
     },
     "data_processing":{
-        "augment_rate": 4,
-        "augment_alpha": 0.0025,
-        "augment_distribution": "uniform",
-        "normalize_magnitude": 0.25,
-        "clean": true
-    },
-    "snds":{
         "augment_rate": null,
         "augment_alpha": null,
         "augment_distribution": null,
         "normalize_magnitude": null,
         "clean": true
+    },
+    "snds":{
+        "fhat_layers": [256, 256, 256],
+        "lpf_layers": [64, 64],
+        "eps": 0.02,
+        "alpha": 0.01,
+        "relaxed": false
     },
     "testing":{
         "num_rollouts": 1,

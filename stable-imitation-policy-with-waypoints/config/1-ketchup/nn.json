@@ -46,7 +46,7 @@
         "relaxed": false
     },
     "testing":{
-        "num_rollouts": 10,
+        "num_rollouts": 1,
         "max_horizon": 1000,
         "verbose": false
     }

@@ -47,7 +47,8 @@ def waypoint_policy(learner_type: str,
                     alpha: Optional[float] = 0.01,
                     relaxed: Optional[bool] = False, 
                     angular: Optional[bool] = False, 
-                    save_model: Optional[bool] = True):
+                    save_model: Optional[bool] = True,
+                    show_stats: Optional[bool] = True):
 
     """ Train a stable/unstable policy to learn a nonlinear dynamical system. """
 
@@ -89,7 +90,7 @@ def waypoint_policy(learner_type: str,
                       relaxed=relaxed,
                       fhat_layers=fhat_layers,
                       lpf_layers=lpf_layers)
-        model.fit(waypoint_positions, waypoint_velocities, n_epochs=n_epochs, lr_initial=1e-4)
+        model.fit(waypoint_positions, waypoint_velocities,show_stats=show_stats, n_epochs=n_epochs, lr_initial=1e-4)
     else:
         raise NotImplementedError(f'Learner type {learner_type} not available!')
 
@@ -128,7 +129,8 @@ def train_policy_for_subgoal(subgoal_data, config, subgoal_index):
         alpha=config["snds"]['alpha'],
         relaxed=config["snds"]['relaxed'],
         angular=False,
-        save_model=config["training"]['save_model']
+        save_model=config["training"]['save_model'], 
+        show_stats=config["testing"]['verbose']
     )
     logger.info(f"Subgoal {subgoal_index} training complete.")
     return model
@@ -253,8 +255,6 @@ def main(config_path):
             # Load the model
             model.load(model_name=model_name, dir=config["data"]["model_dir"])
             policies.append(model)
-        
-        angular_policies = None
     
     # maybe playback the rollout in the simulation
     if config["simulation"]['playback']:
@@ -311,7 +311,6 @@ def main(config_path):
             camera_names=config["simulation"]['camera_names'],
             video_skip=config["simulation"]['video_skip'],
             policies=policies,
-            angular_policies=angular_policies,
             subgoals=subgoal_info,
             initial_state=initial_state,
             write_video=config["simulation"]['write_video'],
