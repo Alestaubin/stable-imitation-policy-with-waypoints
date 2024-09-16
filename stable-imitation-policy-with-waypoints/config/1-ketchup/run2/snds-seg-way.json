@@ -15,8 +15,8 @@
         "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/Y-KITCHEN_SCENE5_put_the_ketchup_in_the_top_drawer_of_the_cabinet_demo/image_demo_local.hdf5"
     },
     "simulation":{
-        "playback": true,
-        "plot": false,
+        "playback": false,
+        "plot": true,
         "video_skip": 3,
         "video_name": "rollout.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"],

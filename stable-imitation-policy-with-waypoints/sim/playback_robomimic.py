@@ -19,6 +19,7 @@ import cv2
 from lib.utils.utils import time_stamp
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
+from lib.utils.waypoint_utils import twoD_plots_from_ee_pos
 
 
 def playback_dataset(
@@ -282,7 +283,24 @@ def playback_dataset(
                     break
             if verbose:
                 logger.info("Gripper action done.")
-        
+
+        x = y = z = []
+        # write the trajectory to a csv file 
+        with open(f"{video_path}/rollout_{j}_trajectory.csv", 'w') as f:
+            f.write ("action_num, segment_num, x_pos, y_pos, z_pos, x_euler, y_euler, z_euler\n")
+            for i, action in enumerate(trajectory):
+                x.append(action[2])
+                y.append(action[3])
+                z.append(action[4])
+                print(action[2], action[3], action[4])
+                f.write(f"{action[0]}, {action[1]}, {action[2]}, {action[3]}, {action[4]}, {action[5]}, {action[6]}, {action[7]}\n")
+        x = np.array(x)
+        y = np.array(y)
+        z = np.array(z)
+        traj_subgoals = [subgoals[l]["subgoal_pos"] for l in range(len(subgoals))]
+        # plot the rollout
+        #twoD_plots_from_ee_pos(x=x, y=y, z=z, subgoals=traj_subgoals, title=f"2D plot rollout {j}", save_path=video_path)
+
         # at this point, all segments have been executed
         # this means: 
         # 1. distance is the distance between the last subgoal and the current end-effector position
@@ -299,12 +317,7 @@ def playback_dataset(
         logger.info(f"Subgoal successes: {subgoal_successes}")
         logger.info(f"Number of successful tasks: {num_successes}/{rollouts}")
         print("=======================================================================================")
-
-    # write the trajectory to a csv file 
-    with open(f"{video_path}/trajectory_{time_stamp()}.csv", 'w') as f:
-        f.write ("action_num, segment_num, x_pos, y_pos, z_pos, x_euler, y_euler, z_euler\n")
-        for i, action in enumerate(trajectory):
-            f.write(f"{action[0]}, {action[1]}, {action[2]}, {action[3]}, {action[4]}, {action[5]}, {action[6]}, {action[7]}\n")
+        
     # Close video writer
     if write_video:
         video_writer.close()

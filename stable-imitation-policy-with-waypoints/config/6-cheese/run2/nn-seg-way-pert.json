@@ -15,8 +15,8 @@
         "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/put_the_cream_cheese_in_the_bowl_demo/image_demo_local.hdf5"
     },
     "simulation":{
-        "playback": true,
-        "plot": false,
+        "playback": false,
+        "plot": true,
         "video_skip": 3,
         "video_name": "rollout.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"],
@@ -34,7 +34,7 @@
             [ 0.458,  0.159,  1.264],
             [ 0.055, -0.269,  1.304],
             [-0.107,  0.300,  1.522]],
-        "reset_on_fail": true,
+        "reset_on_fail": false,
         "noise_alpha": null,
         "grasp_tresh": 0.008, 
         "release_tresh": 0.03

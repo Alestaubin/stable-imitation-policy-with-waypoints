@@ -63,19 +63,71 @@ def scatter_waypoints(waypoint_position, waypoint_velocity, title, save_path=Non
         fig.savefig(f'plots/waypoints/{title.replace(" ", "-")}.png')
     else:
         fig.savefig(f'{save_path}/{title.replace(" ", "-")}.png')
-        
 
-def plot_rollouts(data, policies, path, title, perturbation=True, perturbation_step=50, perturbation_vec=None, reset_after_subgoal=False):
+
+def twoD_plots_from_ee_pos(x, y, z, subgoals, title, save_path=None):
+    """
+    A function that plots the end effector positions in 2D space.
+    """
+    print("subgoals: ", subgoals)
+    print("x.shape: ", x.shape)
+    print("y.shape: ", y.shape)
+    print("z.shape: ", z.shape)
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    # X-Y projection
+    axes[0].scatter(x, y, c='b', label='Positions')
+    axes[0].set_xlabel('X')
+    axes[0].set_ylabel('Y')
+    #axes[0].set_title('X-Y Projection')
+    #axes[0].legend()
+
+    # X-Z projection
+    axes[1].scatter(x, z, c='b', label='Positions')
+    axes[1].set_xlabel('X')
+    axes[1].set_ylabel('Z')
+    #axes[1].set_title('X-Z Projection')
+    #axes[1].legend()
+
+    # Y-Z projection
+    axes[2].scatter(y, z, c='b', label='Positions')
+    axes[2].set_xlabel('Y')
+    axes[2].set_ylabel('Z')
+
+    for subgoal in subgoals:
+        axes[0].scatter(subgoal[0], subgoal[1], c='black', marker='o')
+        axes[1].scatter(subgoal[0], subgoal[2], c='black', marker='o')
+        axes[2].scatter(subgoal[1], subgoal[2], c='black', marker='o')
+
+    # save the plot
+    if save_path is None:
+        fig.savefig(f'plots/ee_pos/{title.replace(" ", "-")}.png')
+    else:
+        fig.savefig(f'{save_path}/{title.replace(" ", "-")}.png')
+
+def plot_rollouts(data, subgoal_info, policies, path, title, perturbation=True, perturbation_step=50, perturbation_vec=None, reset_after_subgoal=False):
+    reset_after_subgoal = True
     all_segments = []
     all_waypoints = []
     all_velocities = []
     subgoals = []
-
+    print("subgoal_info: ", subgoal_info)
+    new_data = {"subgoal_0": {"waypoint_position": [], "waypoint_linear_velocity":[]}, "subgoal_1": {"waypoint_position": [], "waypoint_linear_velocity":[]}, "subgoal_2": {"waypoint_position": [], "waypoint_linear_velocity":[]} }
     if len(policies) == 1:
         print("Only one policy trained for the entire task.")
         # handle the case where there is only one policy trained for the entire task
         policies = [policies[0] for _ in range(3)]
-
+        for i in range(3):
+            start_idx = 0 if i == 0 else int(subgoal_info[i-1]["index"])
+            end_idx = int(subgoal_info[i]["index"])
+            print("start_idx:", start_idx)
+            print("end_idx:", end_idx)
+            new_data[f"subgoal_{i}"]["waypoint_position"] = data["subgoal_0"]["waypoint_position"][start_idx:end_idx]
+            new_data[f"subgoal_{i}"]["waypoint_linear_velocity"] = data["subgoal_0"]["waypoint_linear_velocity"][start_idx:end_idx]
+        
+        data = new_data
+        #print(new_data)
     first = True
     action_num = 0
 
@@ -104,10 +156,21 @@ def plot_rollouts(data, policies, path, title, perturbation=True, perturbation_s
         
         distance_to_target = np.linalg.norm(this_segment[-1] - goal_point)
 
-        while distance_to_target > 0.01 and len(this_segment) < 1000 or len(this_segment) < 10:
-            if action_num == perturbation_step and perturbation:
-                print(f'Adding perturbation at step {action_num}')
+        while distance_to_target > 0.005 and len(this_segment) < 1000 or len(this_segment) < 10:
+
+            if distance_to_target > 1 and len(this_segment) > 10: 
+                break
+            
+            if i == 1 and len(this_segment) == 10 and perturbation:
+                perturbation_vec = np.array([-0.2,-0.25, 0])
                 this_segment.append(perturbation_vec)
+            #if action_num == perturbation_step and perturbation:
+            #    print(f'Adding perturbation at step {action_num}')
+                # TEMP
+                #vec = np.array((curr_ee_pos-this_segment[0])*2)
+                #perturbation_vec = vec.squeeze()
+            #    this_segment.append(perturbation_vec)
+
             curr_ee_pos = np.array(this_segment[-1]).reshape(1,3)
             
             #if len(this_segment) % 25 == 0:
@@ -138,10 +201,11 @@ def plot_rollouts(data, policies, path, title, perturbation=True, perturbation_s
     all_segments = np.array(all_segments)
     print (all_segments.shape)
     print (all_segments[0].shape, all_segments[1].shape, all_segments[2].shape)
+    #rint(all_segments[0])
     print (perturbation_vec)
     all_velocities = np.array(all_velocities)
 
-    scatter_waypoints(np.concatenate(all_waypoints), np.concatenate(all_velocities), 'AWE Waypoints with 0.01 treshold', path, subgoals=subgoals)
+    scatter_waypoints(np.concatenate(all_waypoints), np.concatenate(all_velocities), 'AWE Waypoints', path, subgoals=subgoals)
 
     # plot all segment and waypoints
     x0, y0, z0 = all_waypoints[0][:, 0], all_waypoints[0][:, 1], all_waypoints[0][:, 2]
@@ -188,8 +252,15 @@ def plot_rollouts(data, policies, path, title, perturbation=True, perturbation_s
     fig.savefig(f'{path}/{title.replace(" ", "-")}-3D-entire-traj.png', dpi=1000)
 
     fig2, axes = plt.subplots(1, 3, figsize=(15, 5))
+    
+    '''axes[0].set_xlim([-0.6, 0.1])
+    axes[0].set_ylim([-0.55, 0.3])
+    axes[1].set_xlim([-0.6, 0.1])
+    axes[1].set_ylim([-0.1, 1.75])
+    axes[2].set_xlim([-0.55, 0.3])
+    axes[2].set_ylim([-0.05, 1.7])'''
 
-    # X-Y projection
+    # X-Y projection    
     axes[0].plot(x0, y0, c='b', label='waypoints')
     axes[0].plot(x0_segment, y0_segment, c='r', label='segment')
     axes[0].plot(x1, y1, c='b')

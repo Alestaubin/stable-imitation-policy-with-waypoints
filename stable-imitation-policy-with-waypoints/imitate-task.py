@@ -198,6 +198,7 @@ def main(config_path):
         joint_pos = np.array(f[f"data/demo_{demo}/obs/robot0_joint_pos"])
         subgoals = f[f"data/demo_{demo}/{config['data']['subgoals_dataset']}"]
         for i in range(num_subgoals):
+            subgoal_info[i]["index"] = subgoals[i]
             subgoal_info[i]["joint_pos"] = joint_pos[subgoals[i]]
 
     policies = None
@@ -255,41 +256,41 @@ def main(config_path):
             # Load the model
             model.load(model_name=model_name, dir=config["data"]["model_dir"])
             policies.append(model)
+    config_file_name = args.config.split("/")[-1].split(".")[0]
+    folder_name = time_stamp() + "-" + config_file_name 
+    #create a folder with the current time and date in the videos directory
+    video_path = f"videos/{folder_name}"
+    while os.path.exists(video_path):
+        folder_name += f"-1"
+        video_path = f"videos/{folder_name}"
+    
+    if not os.path.exists(video_path):
+        os.makedirs(video_path)
+
+    # maybe plot the rollouts 
+    if config["simulation"]['plot']:
+        logger.info("Plotting rollouts...")
+        perturbation = config["simulation"]['perturb_step'] is not None and config["simulation"]['perturb_ee_pos'] is not None
+        perturbation_steps = config["simulation"]['perturb_step']
+        perturbation_vecs = config["simulation"]['perturb_ee_pos']
+        perturb = perturbation_steps is not None and perturbation_vecs is not None
+
+        for j in range(config["testing"]['num_rollouts']):
+            if perturb:
+                perturbation_step = perturbation_steps[j]
+                perturbation_vec = perturbation_vecs[j]
+            else:
+                perturbation_step = None
+                perturbation_vec = None    
+            
+            logger.info(f"Plotting rollout {j}")
+            #print("data", data)
+            plot_rollouts(data, subgoal_info, policies, video_path, title=f'{config["training"]["learner_type"]} rollout{j}', perturbation=perturbation, perturbation_step=perturbation_step, perturbation_vec=perturbation_vec, reset_after_subgoal=config["simulation"]['reset_on_fail'])
+
     
     # maybe playback the rollout in the simulation
     if config["simulation"]['playback']:
         logger.info("Starting playback...")
-        config_file_name = args.config.split("/")[-1].split(".")[0]
-        folder_name = time_stamp() + "-" + config_file_name 
-        #create a folder with the current time and date in the videos directory
-        video_path = f"videos/{folder_name}"
-
-        while os.path.exists(video_path):
-            folder_name += f"-1"
-            video_path = f"videos/{folder_name}"
-        
-        if not os.path.exists(video_path):
-            os.makedirs(video_path)
-        
-        # maybe plot the rollouts 
-        if config["simulation"]['plot']:
-            perturbation = config["simulation"]['perturb_step'] is not None and config["simulation"]['perturb_ee_pos'] is not None
-            perturbation_steps = config["simulation"]['perturb_step']
-            perturbation_vecs = config["simulation"]['perturb_ee_pos']
-            perturb = perturbation_steps is not None and perturbation_vecs is not None
-
-            for j in range(config["testing"]['num_rollouts']):
-                if perturb:
-                    perturbation_step = perturbation_steps[j]
-                    perturbation_vec = perturbation_vecs[j]
-                else:
-                    perturbation_step = None
-                    perturbation_vec = None    
-                
-                logger.info(f"Plotting rollout {j}")
-                #print("data", data)
-                plot_rollouts(data, policies, video_path, title=f'{config["training"]["learner_type"]} rollout{j}', perturbation=perturbation, perturbation_step=perturbation_step, perturbation_vec=perturbation_vec, reset_after_subgoal=config["simulation"]['reset_on_fail'])
-
 
         video_full_name = video_path + "/" + config["simulation"]['video_name']
         # save a file info.txt in the same directory as the video

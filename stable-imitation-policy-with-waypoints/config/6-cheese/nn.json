@@ -17,16 +17,26 @@
         "data_dir": "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/data/put_the_cream_cheese_in_the_bowl_demo/image_demo_local.hdf5"
     },
     "simulation":{
-        "playback": true,
-        "plot": false,
+        "playback": false,
+        "plot": true,
         "video_skip": 3,
         "video_name": "rollout.mp4",
         "camera_names": ["agentview", "robot0_eye_in_hand"],
         "write_video": true, 
         "slerp_steps": 50,
-        "perturb_step": null,
-        "perturb_ee_pos": null,
-        "reset_on_fail": true,
+        "perturb_step": [ 10, 3, 25, 22, 17, 6, 12, 8, 15, 20], 
+        "perturb_ee_pos":[
+            [ 0.498, -0.238,  1.123],
+            [-0.334, -0.052,  1.239],
+            [-0.023,  0.036,  1.111],
+            [ 0.406, -0.395,  1.244],
+            [ 0.199, -0.230,  1.327],
+            [-0.240,  0.159,  1.264],
+            [ 0.113, -0.002,  1.290],
+            [ 0.458,  0.159,  1.264],
+            [ 0.055, -0.269,  1.304],
+            [-0.107,  0.300,  1.522]],
+        "reset_on_fail": false,
         "noise_alpha": null,
         "grasp_tresh": 0.008, 
         "release_tresh": 0.03
@@ -46,7 +56,7 @@
         "relaxed": false
     },
     "testing":{
-        "num_rollouts": 1,
+        "num_rollouts": 10,
         "max_horizon": 1000,
         "verbose": false
     }
