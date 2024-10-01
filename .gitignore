@@ -4,5 +4,4 @@ kinova-arm-master/
 .DS_Store
 data/
 stable-imitation-policy-with-waypoints/videos/
-*.egg-info
-*.egg
+*.egg-info/
