@@ -1,4 +1,0 @@
-  File "/Users/alexst-aubin/SummerResearch24/V2/stable-imitation-policy-with-waypoints/stable-imitation-policy-with-waypoints/imitate-task.py", line 230
-    if config["test"]
-                     ^
-SyntaxError: invalid syntax

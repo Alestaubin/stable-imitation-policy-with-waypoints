@@ -164,7 +164,6 @@ def main(config_path):
                 start_idx = subgoal_indices[i-1]
             end_idx = subgoal_indices[i]+1
             data["subgoal_" + str(i)] = {"waypoint_position": ee_pos[start_idx: end_idx], "waypoint_linear_velocity": ee_vel[start_idx: end_idx], "waypoint_gripper_action": waypoint_gripper_actions[start_idx: end_idx], "waypoint_ee_euler": ee_euler[start_idx: end_idx]}
-            #print("subgoal_" + str(i), data["subgoal_" + str(i)]["waypoint_gripper_action"])
     else:
         for i in range(num_subgoals):
 
@@ -186,7 +185,6 @@ def main(config_path):
             
             data["subgoal_" + str(i)] = {"waypoint_position": waypoint_position, "waypoint_linear_velocity": waypoint_velocity, "waypoint_gripper_action": waypoint_gripper_action, "waypoint_ee_euler": waypoint_ee_euler}
 
-    #print("data", data)
     logger.info(f'Data loaded from {config["data"]["data_dir"]}.')
 
     # get the subgoal info

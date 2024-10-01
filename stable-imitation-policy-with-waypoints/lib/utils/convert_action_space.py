@@ -17,7 +17,7 @@ def main(args):
             first_line = False
             continue
         line = line.strip().split(',')
-        new_line = line[:2] + [f"{float(line[2]) - SIM_BASE_POS[0]:.6f}", f"{float(line[3]) - SIM_BASE_POS[1]:.6f}", f"{float(line[4]) - SIM_BASE_POS[2]:.6f}"] + line[5:]
+        new_line = line[:2] + [f"{float(line[2]) - SIM_BASE_POS[0] - 0.20 :.6f}", f"{float(line[3]) - SIM_BASE_POS[1]:.6f}", f"{float(line[4]) - SIM_BASE_POS[2]:.6f}"] + line[5:]
         new_lines.append(','.join(new_line) + '\n')
     
     with open(args.output, 'w') as f:

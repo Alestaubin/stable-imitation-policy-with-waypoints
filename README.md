@@ -180,14 +180,6 @@ Then, run the training script
 ```shell
 python imitate-task.py --config path/to/config/file.json
 ```
-## Known Issues
-
-* In some cases the training loss doesn't reduce when training the model, but the problem can be resolved by running the code again. We are trying to solve this problem at the moment.
-* Note that in proper training, the loss should hover around 5e-3 and lower, otherwise the Lyapunov function might not be trained properly. Always allow sufficient epochs, 3-5k at least, to achieve this result, and also for learning rate scheduler to complete its task.
-  ```cmd
-  Train > 0.007863 | Test > 0.005087 | Best > (0.007863, 24) | LR > 0.00099
-  ```
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting **pull requests** to us.

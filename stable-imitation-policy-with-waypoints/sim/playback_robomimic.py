@@ -116,6 +116,8 @@ def playback_dataset(
         success = False
         env_was_reset = False
         for i in range(len(subgoals)):
+            print("=======================================================================================")
+            print(f"Subgoal {i}")
             if success : 
                 print("Task successful")
             subgoal_ee_euler = subgoals[i]["subgoal_euler"]
@@ -160,7 +162,6 @@ def playback_dataset(
                 sim_mat = TransUtils.quat2mat(sim_quat)
                 sim_euler = TransUtils.mat2euler(sim_mat)
                 if first:
-                    start_quat = sim_quat
                     start_euler = sim_euler
                     first = False
                     key_rots = R.from_euler('xyz', [start_euler, subgoal_ee_euler], degrees=False)
@@ -174,40 +175,38 @@ def playback_dataset(
                 # Get the linear action
                 action_linear = np.array(policies[i].predict(current_ee_pos))[0]
 
-                if angular_policies is None:
-                    if slerp: # use slerp for orientation control
-                        fraction = subgoal_action_num/slerp_steps
-                        if fraction >= 1:
-                            fraction = 1
-                        # We have two rotations, P and Q, and we want to find the rotation R such that applying P and then R is equivalent to applying Q. 
-                        # In rotation matrices, this is easy: Q = R*P, so R = Q*P^-1.
-                        next_R = slerp(fraction)
-                        # get the error rotation between the current rotation and the next rotation  
-                        err_R = next_R * R.from_euler('xyz', sim_euler, degrees=False).inv()
-                        action_angular = err_R.as_euler('xyz', degrees=False)
-                        next_euler = np.array(next_R.as_euler('xyz', degrees=False))
-                    else:
-                        action_angular = subgoal_ee_euler - sim_euler
-                    # normalize if norm is too big
-                    if np.linalg.norm(action_angular) > 0.25:
-                        action_angular = action_angular / np.linalg.norm(action_angular) * 0.25
-                else: 
-                    action_angular = angular_policies[i].predict(current_ee_pos)[0] # NOTE: let's see if this works. It does not :(
-                
-                # add entire action to trajectory
-                traj_abs_action = np.concatenate((traj_info, abs_pos, next_euler)).tolist()
-                traj_abs_action[0] = int(traj_abs_action[0])
-                traj_abs_action[1] = int(traj_abs_action[1])
-                trajectory.append(traj_abs_action)
+                if slerp: # use slerp for orientation control
+                    fraction = subgoal_action_num/slerp_steps
+                    if fraction >= 1:
+                        fraction = 1
+                    # We have two rotations, P and Q, and we want to find the rotation R such that applying P and then R is equivalent to applying Q. 
+                    # In rotation matrices, this is easy: Q = R*P, so R = Q*P^-1.
+                    next_R = slerp(fraction)
+                    # get the error rotation between the current rotation and the next rotation  
+                    err_R = next_R * R.from_euler('xyz', sim_euler, degrees=False).inv()
+                    action_angular = err_R.as_euler('xyz', degrees=False)
+                    next_euler = np.array(next_R.as_euler('xyz', degrees=False))
+                else:
+                    action_angular = subgoal_ee_euler - sim_euler
+                # normalize if norm is too big
+                if np.linalg.norm(action_angular) > 0.25:
+                    action_angular = action_angular / np.linalg.norm(action_angular) * 0.25
+                                
                 if i == 0 :
                     action_gripper = np.array ([-1])  # Open the gripper for the first subgoal
                 else:
-                    action_gripper = np.array([0])
+                    action_gripper = np.array([1])
 
                 action = np.concatenate((action_linear, action_angular, action_gripper))
                 
                 action = np.array(action, copy=True)
                 
+                # add entire action to trajectory
+                traj_abs_action = np.concatenate((traj_info, abs_pos, next_euler, action)).tolist()
+                traj_abs_action[0] = int(traj_abs_action[0])
+                traj_abs_action[1] = int(traj_abs_action[1])
+                trajectory.append(traj_abs_action)
+
                 # Take the action in the environment
                 obs, _, done, _ = env.step(action)
 
@@ -287,13 +286,13 @@ def playback_dataset(
         x = y = z = []
         # write the trajectory to a csv file 
         with open(f"{video_path}/rollout_{j}_trajectory.csv", 'w') as f:
-            f.write ("action_num, segment_num, x_pos, y_pos, z_pos, x_euler, y_euler, z_euler\n")
-            for i, action in enumerate(trajectory):
-                x.append(action[2])
-                y.append(action[3])
-                z.append(action[4])
-                print(action[2], action[3], action[4])
-                f.write(f"{action[0]}, {action[1]}, {action[2]}, {action[3]}, {action[4]}, {action[5]}, {action[6]}, {action[7]}\n")
+            f.write ("action_num, segment_num, x_pos, y_pos, z_pos, x_euler, y_euler, z_euler, x_lin_vel, y_lin_vel, z_lin_vel, x_ang_vel, y_ang_vel, z_ang_vel, gripper_action\n")
+            for i, point in enumerate(trajectory):
+                print(point)
+                x.append(point[2])
+                y.append(point[3])
+                z.append(point[4])
+                f.write(f"{point[0]}, {point[1]}, {point[2]}, {point[3]}, {point[4]}, {point[5]}, {point[6]}, {point[7]}, {point[8]}, {point[9]}, {point[10]}, {point[11]}, {point[12]}, {point[13]}, {point[14]} \n")
         x = np.array(x)
         y = np.array(y)
         z = np.array(z)
