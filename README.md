@@ -25,7 +25,7 @@ Make sure you have Conda installed, or install it from [Anaconda Website](https:
 Create and activate a new conda environment from the `environment-mac.yml` file.
 ```
 conda env create -f environment-mac.yml
-conda activate IL-waypoint
+conda activate SIPWW
 ```
 Install packages required for the simulation. 
 ```

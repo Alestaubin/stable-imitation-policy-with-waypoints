@@ -1,4 +1,4 @@
-name: learning-ds
+name: SIPWW
 channels:
   - conda-forge
   - defaults
