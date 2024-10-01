@@ -14,7 +14,9 @@ Conference on Robot Learning, 2023.
 ## Installation 
 First, clone this repository on your device.
 ```
+git clone https://github.com/Alestaubin/stable-imitation-policy-with-waypoints.git
 cd stable-imitation-policy-with-waypoints
+pip install -e .
 ```
 
 Make sure you have Conda installed, or install it from [Anaconda Website](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html).
