@@ -188,22 +188,16 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Citation
 
-Please use the following BibTeX formatted **citation** for PLYDS:
+Please use the following BibTeX formatted **citation**:
 ```
-@inproceedings{abyaneh2023learning,
-  title={Learning Lyapunov-Stable Polynomial Dynamical Systems Through Imitation},
-  author={Abyaneh, Amin and Lin, Hsiu-Chin},
-  booktitle={7th Annual Conference on Robot Learning},
-  year={2023}
-}
-```
-and SNDS:
-```
-@article{abyaneh2024globally,
-  title={Globally Stable Neural Imitation Policies},
-  author={Abyaneh, Amin and Guzm{\'a}n, Mariana Sosa and Lin, Hsiu-Chin},
-  journal={arXiv preprint arXiv:2403.04118},
-  year={2024}
+@misc{staubin2024singleshotlearningstabledynamical,
+      title={Single-Shot Learning of Stable Dynamical Systems for Long-Horizon Manipulation Tasks}, 
+      author={Alexandre St-Aubin and Amin Abyaneh and Hsiu-Chin Lin},
+      year={2024},
+      eprint={2410.01033},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2410.01033}, 
 }
 ```
 
