@@ -2,7 +2,9 @@
 
 ## Overview
 
-Imitation learning can be leveraged to tackle complex motion planning problems by training a policy to imitate an expert's behavior. We attempt to safely imitate human demonstration from video data.
+This repository is the implementation code of the paper "Single-Shot Learning of Stable Dynamical Systems for Long-Horizon Manipulation Tasks"([arXiv](https://arxiv.org/abs/2410.01033)) by Alexandre St-Aubin, Amin Abyaneh, and Hsiu-Chin Lin at McGill University.
+
+Imitation learning can be leveraged to tackle complex motion planning problems by training a policy to imitate an expert's behavior. We attempt to safely imitate *long-horizon* manipulation tasks from a single demonstration.
 
 This repository builds on top of the following two publications:
 
