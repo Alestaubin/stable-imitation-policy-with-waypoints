@@ -6,12 +6,10 @@ This repository is the implementation code of the paper "Single-Shot Learning of
 
 Imitation learning can be leveraged to tackle complex motion planning problems by training a policy to imitate an expert's behavior. We attempt to safely imitate *long-horizon* manipulation tasks from a single demonstration.
 
-This repository builds on top of the following two publications:
+This repository builds on top of the following:
 
 * **SNDS** — A. Abyaneh, M. Sosa, H.-C. Lin. Globally stable neural imitation policies. International Conference on Robotics and Automation, 2024.
 
-* **PLYDS** — A. Abyaneh and H.-C. Lin. Learning Lyapunov-stable polynomial dynamical systems through imitation. In 7th Annual
-Conference on Robot Learning, 2023.
 
 ## Installation 
 First, clone this repository on your device.
