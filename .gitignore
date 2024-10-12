@@ -5,3 +5,5 @@ kinova-arm-master/
 data/
 stable-imitation-policy-with-waypoints/videos/
 *.egg-info/
+*/videos
+
