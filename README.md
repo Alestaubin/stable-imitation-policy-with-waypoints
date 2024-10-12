@@ -10,9 +10,6 @@ This repository builds on top of the following two publications:
 
 * **SNDS** — A. Abyaneh, M. Sosa, H.-C. Lin. Globally stable neural imitation policies. International Conference on Robotics and Automation, 2024.
 
-* **PLYDS** — A. Abyaneh and H.-C. Lin. Learning Lyapunov-stable polynomial dynamical systems through imitation. In 7th Annual
-Conference on Robot Learning, 2023.
-
 ## Installation 
 First, clone this repository on your device.
 ```
@@ -65,11 +62,12 @@ pip install -e .
 ```
 ## Datasets
 
-See [this](https://drive.google.com/drive/folders/1pUf4rRhM_E5hXXHynWmEhNyuBOxJXORY?usp=sharing) drive for the hdf5 datasets. Use the following commands to download the data.
+See [this](https://drive.google.com/drive/folders/16f09qTD5ZNinowQvYAyUhC49PSdX95H1?usp=sharing) drive for the hdf5 datasets. Each folder contains a different task. In each folder, you'll find the original dataset from `Libero` and the modified dataset as well as a video of the task. To be able to run these on your machine, you'll need to at least process the absolute paths using `lib/utils/preprocess_hdf5.py` (see `preprocess.sh`). 
 
+Use the following commands to download the data.
 ```
 cd data
-gdown --folder https://drive.google.com/drive/folders/1pV-Lii52PF1djSSOAlLdCLpyS9zDAFIs?usp=drive_link
+gdown --folder https://drive.google.com/drive/folders/16f09qTD5ZNinowQvYAyUhC49PSdX95H1?usp=sharing
 ```
 ## Repository structure
 
@@ -111,72 +109,69 @@ To acquire a better understanding of the environment and features, you just need
 ## Data Preprocessing
 The model takes as input a panda arm task in the form of a hdf5 file. These tasks can be obtained from [Libero](https://libero-project.github.io/main.html). The original file must first be preprocessed before it is given as input to the model.
 
-1. Download the dataset and move it to the data folder
+1. Download the dataset and move it to the data folder. Make sure to place the hdf5 file in a folder of the same name, e.g. `data/task1/task1.hdf5`.
 ```
 cd data
 mkdir name_of_task
 cd path/to/task_dataset
-mv task_dataset path/to/data/name_of_task.hdf5
+mv task_dataset path/to/data/name_of_task/name_of_task.hdf5
 ```
-2. Preprocess raw data and extract images
-```
-python lib/utils/preprocess_hdf5.py -i ./data/name_of_task/task_dataset.hdf5 -o ./data/name_of_task/demo_modified.hdf5 --workspace '/Users/alexst-aubin/SummerResearch24/V2' --libero_folder 'libero_90'
-
-python lib/utils/dataset_states_to_obs.py --dataset './data/name_of_task/demo_modified.hdf5' --done_mode 0 --camera_names agentview robot0_eye_in_hand --camera_height 84 --camera_width 84 --output_name image_demo_local.hdf5 --exclude-next-obs
-```
-3. Extract end-effector trajectory for training
-```
-python lib/utils/dataset_extract_traj_plans.py --dataset 'data/name_of_task/image_demo_local.hdf5'
-```
-4. Convert delta actions to absolute actions for waypoint extraction
-```
-python lib/utils/robomimic_convert_action.py --dataset 'data/name_of_task/image_demo_local.hdf5'
-```
-5. Extract waypoints using [AWE](https://lucys0.github.io/awe/).
-```
-python lib/utils/waypoint_extraction.py --dataset 'data/name_of_task/image_demo_local.hdf5' --group_name 'AWE_waypoints_0025' --start_idx 0 --end_idx 49 --err_threshold 0.0025
-```
+2. Preprocess raw data and extract images (see `preprocess.sh`).
 
 ## Training
 
 ### config file
 Create a config file with the following structure: 
-```json
+```yaml
 {
     "training":{
         "learner_type": "snds",
-        "num_epochs": 5000,
-        "demos": [34],
-        "device": "cpu"
+        "num_epochs": 10000,
+        "demo": 1, # demo to train on in the dataset
+        "device": "cpu",
+        "segmentation": true # whether to segment the data into subgoals
     },
     "data":{
-        "model_names": ["segment0_model_name", "segment1_model_name", "segment2_model_name"],
-        "model_dir": "res/",
-        "waypoints_dataset": "AWE_waypoints_0025",
-        "subgoals_dataset": "AWE_subgoals_0025",
-        "data_dir": "path/to/data/name_of_task/image_demo_local.hdf5"
+        "linear_policies": ["segment0_model_name", "segment1_model_name", "segment2_model_name"], 
+        "angular_policies": null,
+        "model_dir": "res/", # set to null if models are not trained yet
+        "waypoints_dataset": "AWE_waypoints_01", # if null, will train on entire dataset
+        "subgoals_dataset": "AWE_subgoals_01",
+        "data_dir": "path/to/dataset/image_demo_local.hdf5" 
     },
     "simulation":{
-        "playback": true,
-        "plot": true,
-        "video_skip": 5,
-        "multiplier": 1,
-        "video_name": "a_very_cool_video.mp4",
-        "camera_names": ["agentview", "robot0_eye_in_hand"]
+        "playback": true, # whether to playback the policy in simulation
+        "plot": false, # whether to output plots of the policy rollout
+        "video_skip": 3, # number of frames to skip in the video
+        "video_name": "rollout.mp4", # file to save the video to (if playback == True)
+        "camera_names": ["agentview", "robot0_eye_in_hand"], 
+        "write_video": true, 
+        "slerp_steps": 50, # number of steps for the slerp algo (decrease if ori is not reached before subgoal)
+        "perturb_step": null, # (list) step at which to inject perturbation 
+        "perturb_ee_pos":null, # (list) position of the perturbation
+        "reset_on_fail": true, # whether to reset to next subgoal on failure
+        "noise_alpha": 0.01, # standard deviation of the gaussian noise added to the ee_pos feedback
+        "grasp_tresh": 0.008, # threshold distance for subgoal to be considered a success (thus grasp)
+        "release_tresh": 0.03 # different threshold for releasing
     },
     "data_processing":{
-        "augment_rate": 4,
-        "augment_alpha": 0.0025,
-        "augment_distribution": "uniform",
-        "normalize_magnitude": 0.25,
-        "clean": true
+        "augment_rate": 4, # add 4 new datapoint for each original instance (data augmentation)
+        "augment_alpha": 0.0025, # parameter for the augmentation
+        "augment_distribution": "uniform", # uniform or normal 
+        "normalize_magnitude": 0.25, # magnitude of the velocity vectors
+        "clean": true # whether to remove out of distribution points 
     },
-    "snds":{
+    "snds":{ # SNDS network parameters
         "fhat_layers": [256, 256, 256],
         "lpf_layers": [64, 64],
         "eps": 0.02,
         "alpha": 0.01,
         "relaxed": true
+    },
+    "testing":{ 
+        "num_rollouts": 10, # number of rollouts for the simulation 
+        "max_horizon": 1000, # max number of steps before cutoff
+        "verbose": true 
     }
 } 
 ```
@@ -184,6 +179,7 @@ Then, run the training script
 ```shell
 python imitate-task.py --config path/to/config/file.json
 ```
+The `k` trained models will be saved to `res/learner_type/`, where `k` is the number of subgoals in the task, `learner_type` is set in the config file (either snds or nn). 
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting **pull requests** to us.
